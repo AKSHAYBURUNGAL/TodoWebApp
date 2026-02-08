@@ -1,0 +1,25 @@
+✓ Server running on http://localhost:5000
+✓ MongoDB connected successfully
+[2026-02-05T19:40:40.718Z] POST /todos
+[2026-02-05T19:40:56.578Z] OPTIONS /todos
+[2026-02-05T19:40:56.584Z] OPTIONS /todos
+[2026-02-05T19:40:56.593Z] GET /todos
+📥 GET /todos - Fetching todos for user: 6984f13d47461fe710b10922
+✓ Found 0 todos
+[2026-02-05T19:40:56.628Z] GET /todos
+📥 GET /todos - Fetching todos for user: 6984f13d47461fe710b10922
+✓ Found 0 todos
+[2026-02-05T19:41:03.377Z] OPTIONS /todos
+[2026-02-05T19:41:03.383Z] POST /todos
+[2026-02-05T19:41:03.409Z] GET /todos
+📥 GET /todos - Fetching todos for user: 6984f13d47461fe710b10922
+✓ Found 1 todos
+[2026-02-05T19:52:18.754Z] OPTIONS /auth/register
+[2026-02-05T19:52:18.762Z] POST /auth/register
+📥 POST /auth/register - Registering user: { username: '9694724752', email: 'morev8515@gmail.com' }
+💾 Saving user to database...
+✓ User registered: 9694724752
+[2026-02-05T19:52:19.060Z] OPTIONS /todos
+[2026-02-05T19:52:19.074Z] GET /todos
+📥 GET /todos - Fetching todos for user: 6984f4f2ebe1004d73e2e598
+✓ Found 0 todos
