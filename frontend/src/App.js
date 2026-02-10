@@ -1,12 +1,5 @@
-/**
- * Todo App - Main Component
- * Manages todo list with CRUD operations, filtering, and editing
- * Includes user authentication, dashboard, and analytics
- */
-
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Auth from "./components/Auth";
 import Dashboard from "./components/Dashboard";
 import TaskManager from "./components/TaskManager";
 import DailyChecklist from "./components/DailyChecklist";
@@ -14,10 +7,9 @@ import WeeklyView from "./components/WeeklyView";
 import MonthlyView from "./components/MonthlyView";
 import "./App.css";
 
-// ===== API Configuration =====
 const API_URL = "http://localhost:5000/api/todos";
 
-// ===== Constants =====
+
 const INITIAL_FORM_STATE = {
   text: "",
   description: "",
@@ -33,23 +25,11 @@ const PRIORITY_COLORS = {
 };
 
 function App() {
-  // ===== State Management =====
-  const [user, setUser] = useState(null);
   const [todos, setTodos] = useState([]);
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [filter, setFilter] = useState("all");
   const [editingId, setEditingId] = useState(null);
-  const [activeTab, setActiveTab] = useState("checklist"); // 'checklist', 'weekly', 'monthly', 'tasks', 'dashboard'
-
-  // ===== Lifecycle Hooks =====
-  useEffect(() => {
-    // Check if user is already logged in
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      fetchTodos();
-    }
-  }, []);
+  const [activeTab, setActiveTab] = useState("checklist"); 
 
   // ===== API Functions =====
 
@@ -58,19 +38,17 @@ function App() {
    */
   const fetchTodos = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.get(API_URL);
       setTodos(response.data);
     } catch (error) {
       console.error("Error fetching todos:", error.message);
     }
   };
 
-  /**
-   * Add or update a todo
-   */
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
   const saveTodo = async () => {
     if (!formData.text.trim()) {
       alert("Please enter a todo title");
@@ -78,22 +56,19 @@ function App() {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      const headers = { Authorization: `Bearer ${token}` };
-
       if (editingId) {
-        // Update existing todo
+     
         await axios.put(`${API_URL}/${editingId}`, {
           ...formData,
           dueDate: formData.dueDate || null
-        }, { headers });
+        });
         setEditingId(null);
       } else {
-        // Create new todo
+     
         await axios.post(API_URL, {
           ...formData,
           dueDate: formData.dueDate || null
-        }, { headers });
+        });
       }
       resetForm();
       fetchTodos();
@@ -102,25 +77,19 @@ function App() {
     }
   };
 
-  /**
-   * Toggle todo completion status
-   */
   const toggleTodo = async (todo) => {
     try {
-      const token = localStorage.getItem("token");
       await axios.put(`${API_URL}/${todo._id}`, {
         ...todo,
         completed: !todo.completed
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      });
       fetchTodos();
     } catch (error) {
       console.error("Error toggling todo:", error.message);
     }
   };
 
-  /**
-   * Load todo data into form for editing
-   */
+ 
   const startEditingTodo = (todo) => {
     setFormData({
       text: todo.text,
@@ -132,59 +101,32 @@ function App() {
     setEditingId(todo._id);
   };
 
-  /**
-   * Delete a todo
-   */
   const deleteTodo = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${API_URL}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.delete(`${API_URL}/${id}`);
       fetchTodos();
     } catch (error) {
       console.error("Error deleting todo:", error.message);
     }
   };
 
-  /**
-   * Handle logout
-   */
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
+    localStorage.clear();
     setTodos([]);
     resetForm();
   };
 
-  /**
-   * Handle successful authentication
-   */
-  const handleAuthSuccess = (userData) => {
-    setUser(userData);
-    fetchTodos();
-  };
-
-  // ===== Helper Functions =====
-
-  /**
-   * Reset form to initial state
-   */
+ 
   const resetForm = () => {
     setFormData(INITIAL_FORM_STATE);
   };
 
-  /**
-   * Get color for priority badge
-   */
+ 
   const getPriorityColor = (priority) => {
     return PRIORITY_COLORS[priority] || "#666";
   };
 
-  /**
-   * Filter todos based on selected filter
-   */
+ 
   const getFilteredTodos = () => {
     return todos.filter(todo => {
       if (filter === "completed") return todo.completed;
@@ -193,33 +135,18 @@ function App() {
     });
   };
 
-  // ===== Computed Values =====
   const filteredTodos = getFilteredTodos();
   const completedCount = todos.filter(t => t.completed).length;
   const pendingCount = todos.filter(t => !t.completed).length;
   const isEditing = editingId !== null;
 
-  // ===== Conditional Rendering =====
-  if (!user) {
-    return <Auth onAuthSuccess={handleAuthSuccess} />;
-  }
-
-  const token = localStorage.getItem("token");
-
-  // ===== Render =====
   return (
     <div className="app-container">
-      {/* Header with User Info */}
+      {/* Header with App Info */}
       <div className="header">
         <div className="header-left">
           <h1>📋 Todo Management System</h1>
           <p className="subtitle">Organize, track, and analyze your tasks</p>
-        </div>
-        <div className="header-right">
-          <span className="user-info">👤 {user.username}</span>
-          <button className="logout-btn" onClick={handleLogout}>
-            Logout
-          </button>
         </div>
       </div>
 
@@ -260,33 +187,29 @@ function App() {
       {/* Tab Content */}
       <div className="tab-content">
         {activeTab === "checklist" && (
-          <DailyChecklist token={token} />
+          <DailyChecklist />
         )}
         
         {activeTab === "weekly" && (
-          <WeeklyView token={token} />
+          <WeeklyView />
         )}
 
         {activeTab === "monthly" && (
-          <MonthlyView token={token} />
+          <MonthlyView />
         )}
         
         {activeTab === "tasks" && (
-          <TaskManager token={token} onTasksChange={setTodos} />
+          <TaskManager onTasksChange={setTodos} />
         )}
         
         {activeTab === "dashboard" && (
-          <Dashboard token={token} />
+          <Dashboard />
         )}
       </div>
     </div>
   );
 }
 
-/**
- * TodoCard Component
- * Displays a single todo item with actions
- */
 function TodoCard({ todo, onToggle, onEdit, onDelete, getPriorityColor }) {
   return (
     <div className={`todo-card ${todo.completed ? "completed" : ""}`}>

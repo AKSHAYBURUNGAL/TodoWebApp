@@ -1,6 +1,5 @@
 const router = require("express").Router();
 const Todo = require("../models/Todo");
-const authMiddleware = require("../middleware/authMiddleware");
 const analyticsService = require("../services/analyticsService");
 
 const sendError = (res, message, statusCode = 500) => {
@@ -8,24 +7,21 @@ const sendError = (res, message, statusCode = 500) => {
   res.status(statusCode).json({ error: message });
 };
 
-// ===== Apply authentication middleware to all routes =====
-router.use(authMiddleware);
 
-// ===== GET ALL TODOS =====
 router.get("/", async (req, res) => {
   try {
-    console.log(`📥 GET /todos - Fetching todos for user: ${req.userId}`);
+    console.log(`GET /todos - Fetching todos for user: ${req.userId}`);
     const todos = await Todo.find({ userId: req.userId })
       .sort({ dueDate: 1, priority: -1 });
     console.log(`✓ Found ${todos.length} todos`);
     res.json(todos);
   } catch (err) {
-    console.error("❌ Error fetching todos:", err.message);
+    console.error("Error fetching todos:", err.message);
     sendError(res, err.message);
   }
 });
 
-// ===== GET TODAY'S TASKS (Daily Checklist) =====
+
 router.get("/daily/today", async (req, res) => {
   try {
     const today = new Date();
@@ -54,12 +50,12 @@ router.get("/daily/today", async (req, res) => {
 
     res.json(todos);
   } catch (err) {
-    console.error("❌ Error fetching daily tasks:", err.message);
+    console.error("Error fetching daily tasks:", err.message);
     sendError(res, err.message);
   }
 });
 
-// ===== GET TASKS FOR SPECIFIC DATE =====
+
 router.get("/daily/:date", async (req, res) => {
   try {
     const requestedDate = new Date(req.params.date);
@@ -69,7 +65,7 @@ router.get("/daily/:date", async (req, res) => {
     nextDate.setDate(nextDate.getDate() + 1);
 
     const todos = await Todo.find({
-      userId: req.userId,
+      _id: req.params.id,
       $or: [
         { dueDate: { $gte: requestedDate, $lt: nextDate } },
         { 
@@ -92,36 +88,32 @@ router.get("/daily/:date", async (req, res) => {
   }
 });
 
-// ===== GET WEEKLY TASKS (For Week Starting on Given Date) =====
+
 router.get("/weekly/:date", async (req, res) => {
   try {
-    // Get start of week (Sunday)
+
     const startOfWeek = new Date(req.params.date);
     startOfWeek.setHours(0, 0, 0, 0);
     
-    // Adjust to Sunday if not already
     const dayOfWeek = startOfWeek.getDay();
     startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
 
-    // Get end of week (Saturday)
+  
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(endOfWeek.getDate() + 6);
     endOfWeek.setHours(23, 59, 59, 999);
 
     const todos = await Todo.find({
-      userId: req.userId,
+       _id: req.params.id,
       $or: [
-        // Tasks with due dates in this week
         { 
           dueDate: { $gte: startOfWeek, $lte: endOfWeek }
         },
-        // Daily recurring tasks that are active
         { 
           recurrence: "daily",
           startDate: { $lte: endOfWeek },
           $or: [{ endDate: null }, { endDate: { $gte: startOfWeek } }]
         },
-        // Weekly recurring tasks that are active
         {
           recurrence: "weekly",
           startDate: { $lte: endOfWeek },
@@ -132,12 +124,12 @@ router.get("/weekly/:date", async (req, res) => {
 
     res.json(todos);
   } catch (err) {
-    console.error("❌ Error fetching weekly tasks:", err.message);
+    console.error("Error fetching weekly tasks:", err.message);
     sendError(res, err.message);
   }
 });
 
-// ===== GET MONTHLY TASKS =====
+
 router.get("/monthly/:year/:month", async (req, res) => {
   try {
     const year = parseInt(req.params.year);
@@ -149,23 +141,19 @@ router.get("/monthly/:year/:month", async (req, res) => {
     const todos = await Todo.find({
       userId: req.userId,
       $or: [
-        // Tasks with due dates in this month
         {
           dueDate: { $gte: firstDay, $lte: lastDay }
         },
-        // Daily recurring tasks
         {
           recurrence: "daily",
           startDate: { $lte: lastDay },
           $or: [{ endDate: null }, { endDate: { $gte: firstDay } }]
         },
-        // Weekly recurring tasks
         {
           recurrence: "weekly",
           startDate: { $lte: lastDay },
           $or: [{ endDate: null }, { endDate: { $gte: firstDay } }]
         },
-        // Monthly recurring tasks
         {
           recurrence: "monthly",
           startDate: { $lte: lastDay },
@@ -176,17 +164,17 @@ router.get("/monthly/:year/:month", async (req, res) => {
 
     res.json(todos);
   } catch (err) {
-    console.error("❌ Error fetching monthly tasks:", err.message);
+    console.error("Error fetching monthly tasks:", err.message);
     sendError(res, err.message);
   }
 });
 
-// ===== CREATE NEW TODO =====
+
 router.post("/", async (req, res) => {
   try {
     const { text, description, priority, startDate, dueDate, endDate, category, recurrence, recurrenceDays } = req.body;
 
-    // Validate required field
+  
     if (!text || !text.trim()) {
       return sendError(res, "Todo title is required", 400);
     }
@@ -212,12 +200,12 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ===== UPDATE TODO =====
+
 router.put("/:id", async (req, res) => {
   try {
     const { text, description, status, priority, startDate, dueDate, endDate, category, recurrence, recurrenceDays } = req.body;
 
-    // Find todo and verify ownership
+   
     let todo = await Todo.findById(req.params.id);
 
     if (!todo) {
@@ -228,7 +216,7 @@ router.put("/:id", async (req, res) => {
       return sendError(res, "Not authorized to update this todo", 403);
     }
 
-    // Update fields if provided
+    
     if (text) todo.text = text.trim();
     if (description !== undefined) todo.description = description;
     if (status) todo.status = status;
@@ -247,7 +235,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ===== MARK TODO AS COMPLETED =====
+
 router.patch("/:id/complete", async (req, res) => {
   try {
     const todo = await Todo.findById(req.params.id);
@@ -261,12 +249,10 @@ router.patch("/:id/complete", async (req, res) => {
       return sendError(res, "Not authorized to update this todo", 403);
     }
 
-    // For recurring tasks, add to completion history with date
     if (todo.recurrence !== "none") {
       if (!todo.completionHistory) {
         todo.completionHistory = [];
       }
-      // Check if this date is already completed
       const dateStr = completionDate.toISOString().split("T")[0];
       const existingRecord = todo.completionHistory.find(
         (record) => record.completedAt.toISOString().split("T")[0] === dateStr
@@ -279,7 +265,6 @@ router.patch("/:id/complete", async (req, res) => {
         });
       }
     } else {
-      // For non-recurring tasks, just mark as completed
       todo.status = "completed";
       todo.completed = true;
       
@@ -299,7 +284,6 @@ router.patch("/:id/complete", async (req, res) => {
   }
 });
 
-// ===== MARK TODO AS PENDING =====
 router.patch("/:id/uncomplete", async (req, res) => {
   try {
     const todo = await Todo.findById(req.params.id);
@@ -313,7 +297,6 @@ router.patch("/:id/uncomplete", async (req, res) => {
       return sendError(res, "Not authorized to update this todo", 403);
     }
 
-    // For recurring tasks, remove from completion history for that date
     if (todo.recurrence !== "none") {
       if (todo.completionHistory) {
         const dateStr = completionDate.toISOString().split("T")[0];
@@ -322,7 +305,6 @@ router.patch("/:id/uncomplete", async (req, res) => {
         );
       }
     } else {
-      // For non-recurring tasks, mark as pending
       todo.status = "pending";
       todo.completed = false;
     }
@@ -334,7 +316,6 @@ router.patch("/:id/uncomplete", async (req, res) => {
   }
 });
 
-// ===== DELETE TODO =====
 router.delete("/:id", async (req, res) => {
   try {
     const todo = await Todo.findById(req.params.id);
@@ -355,9 +336,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// ===== ANALYTICS ENDPOINTS =====
-
-// Get dashboard overview
 router.get("/analytics/dashboard/overview", async (req, res) => {
   try {
     const overview = await analyticsService.getDashboardOverview(req.userId);
@@ -367,7 +345,7 @@ router.get("/analytics/dashboard/overview", async (req, res) => {
   }
 });
 
-// Get daily productivity
+
 router.get("/analytics/daily/:days", async (req, res) => {
   try {
     const days = parseInt(req.params.days) || 30;
@@ -378,7 +356,6 @@ router.get("/analytics/daily/:days", async (req, res) => {
   }
 });
 
-// Get weekly productivity
 router.get("/analytics/weekly/:weeks", async (req, res) => {
   try {
     const weeks = parseInt(req.params.weeks) || 12;
@@ -389,7 +366,7 @@ router.get("/analytics/weekly/:weeks", async (req, res) => {
   }
 });
 
-// Get monthly productivity
+
 router.get("/analytics/monthly/:months", async (req, res) => {
   try {
     const months = parseInt(req.params.months) || 12;
@@ -400,7 +377,6 @@ router.get("/analytics/monthly/:months", async (req, res) => {
   }
 });
 
-// Get task statistics
 router.get("/analytics/statistics", async (req, res) => {
   try {
     const stats = await analyticsService.getTaskStatistics(req.userId);
@@ -410,7 +386,6 @@ router.get("/analytics/statistics", async (req, res) => {
   }
 });
 
-// Get completion history
 router.get("/analytics/history/:days", async (req, res) => {
   try {
     const days = parseInt(req.params.days) || 30;
