@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Todo = require("../models/Todo");
 const analyticsService = require("../services/analyticsService");
+const { v7: uuidv7 } = require("uuid");
 
 const sendError = (res, message, statusCode = 500) => {
   console.error("Error:", message);
@@ -10,8 +11,7 @@ const sendError = (res, message, statusCode = 500) => {
 
 router.get("/", async (req, res) => {
   try {
-    console.log(`GET /todos - Fetching todos for user: ${req.userId}`);
-    const todos = await Todo.find({ userId: req.userId })
+    const todos = await Todo.find({})
       .sort({ dueDate: 1, priority: -1 });
     console.log(`✓ Found ${todos.length} todos`);
     res.json(todos);
@@ -31,7 +31,6 @@ router.get("/daily/today", async (req, res) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const todos = await Todo.find({
-      userId: req.userId,
       $or: [
         { dueDate: { $gte: today, $lt: tomorrow } },
         { 
@@ -65,7 +64,6 @@ router.get("/daily/:date", async (req, res) => {
     nextDate.setDate(nextDate.getDate() + 1);
 
     const todos = await Todo.find({
-      _id: req.params.id,
       $or: [
         { dueDate: { $gte: requestedDate, $lt: nextDate } },
         { 
@@ -104,7 +102,6 @@ router.get("/weekly/:date", async (req, res) => {
     endOfWeek.setHours(23, 59, 59, 999);
 
     const todos = await Todo.find({
-       _id: req.params.id,
       $or: [
         { 
           dueDate: { $gte: startOfWeek, $lte: endOfWeek }
@@ -139,7 +136,6 @@ router.get("/monthly/:year/:month", async (req, res) => {
     const lastDay = new Date(year, month, 0);
 
     const todos = await Todo.find({
-      userId: req.userId,
       $or: [
         {
           dueDate: { $gte: firstDay, $lte: lastDay }
@@ -178,9 +174,10 @@ router.post("/", async (req, res) => {
     if (!text || !text.trim()) {
       return sendError(res, "Todo title is required", 400);
     }
+    const taskId = uuidv7();
 
     const todo = new Todo({
-      userId: req.userId,
+      taskId,
       text: text.trim(),
       description: description || "",
       priority: priority || "medium",
@@ -203,17 +200,13 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
-    const { text, description, status, priority, startDate, dueDate, endDate, category, recurrence, recurrenceDays } = req.body;
+    const { text, description, status, priority, startDate, dueDate, endDate, category, recurrence, recurrenceDays, completed } = req.body;
 
    
     let todo = await Todo.findById(req.params.id);
 
     if (!todo) {
       return sendError(res, "Todo not found", 404);
-    }
-
-    if (todo.userId.toString() !== req.userId) {
-      return sendError(res, "Not authorized to update this todo", 403);
     }
 
     
@@ -227,6 +220,7 @@ router.put("/:id", async (req, res) => {
     if (category) todo.category = category;
     if (recurrence) todo.recurrence = recurrence;
     if (recurrenceDays) todo.recurrenceDays = recurrenceDays;
+    if (completed !== undefined) todo.completed = completed;
 
     await todo.save();
     res.json(todo);
@@ -243,10 +237,6 @@ router.patch("/:id/complete", async (req, res) => {
 
     if (!todo) {
       return sendError(res, "Todo not found", 404);
-    }
-
-    if (todo.userId.toString() !== req.userId) {
-      return sendError(res, "Not authorized to update this todo", 403);
     }
 
     if (todo.recurrence !== "none") {
@@ -293,9 +283,6 @@ router.patch("/:id/uncomplete", async (req, res) => {
       return sendError(res, "Todo not found", 404);
     }
 
-    if (todo.userId.toString() !== req.userId) {
-      return sendError(res, "Not authorized to update this todo", 403);
-    }
 
     if (todo.recurrence !== "none") {
       if (todo.completionHistory) {
@@ -324,13 +311,9 @@ router.delete("/:id", async (req, res) => {
       return sendError(res, "Todo not found", 404);
     }
 
-    if (todo.userId.toString() !== req.userId) {
-      return sendError(res, "Not authorized to delete this todo", 403);
-    }
-
     await Todo.findByIdAndDelete(req.params.id);
 
-    res.json({ message: "Todo deleted successfully", id: req.params.id });
+    res.json({ message: "Todo deleted successfully", taskId: req.params.id });
   } catch (err) {
     sendError(res, err.message);
   }
@@ -338,7 +321,7 @@ router.delete("/:id", async (req, res) => {
 
 router.get("/analytics/dashboard/overview", async (req, res) => {
   try {
-    const overview = await analyticsService.getDashboardOverview(req.userId);
+    const overview = await analyticsService.getDashboardOverview();
     res.json(overview);
   } catch (err) {
     sendError(res, err.message);
@@ -349,7 +332,7 @@ router.get("/analytics/dashboard/overview", async (req, res) => {
 router.get("/analytics/daily/:days", async (req, res) => {
   try {
     const days = parseInt(req.params.days) || 30;
-    const data = await analyticsService.getDailyProductivity(req.userId, days);
+    const data = await analyticsService.getDailyProductivity(null, days);
     res.json(data);
   } catch (err) {
     sendError(res, err.message);
@@ -359,7 +342,7 @@ router.get("/analytics/daily/:days", async (req, res) => {
 router.get("/analytics/weekly/:weeks", async (req, res) => {
   try {
     const weeks = parseInt(req.params.weeks) || 12;
-    const data = await analyticsService.getWeeklyProductivity(req.userId, weeks);
+    const data = await analyticsService.getWeeklyProductivity(null, weeks);
     res.json(data);
   } catch (err) {
     sendError(res, err.message);
@@ -370,7 +353,7 @@ router.get("/analytics/weekly/:weeks", async (req, res) => {
 router.get("/analytics/monthly/:months", async (req, res) => {
   try {
     const months = parseInt(req.params.months) || 12;
-    const data = await analyticsService.getMonthlyProductivity(req.userId, months);
+    const data = await analyticsService.getMonthlyProductivity(null, months);
     res.json(data);
   } catch (err) {
     sendError(res, err.message);
@@ -379,7 +362,7 @@ router.get("/analytics/monthly/:months", async (req, res) => {
 
 router.get("/analytics/statistics", async (req, res) => {
   try {
-    const stats = await analyticsService.getTaskStatistics(req.userId);
+    const stats = await analyticsService.getTaskStatistics();
     res.json(stats);
   } catch (err) {
     sendError(res, err.message);
@@ -389,7 +372,7 @@ router.get("/analytics/statistics", async (req, res) => {
 router.get("/analytics/history/:days", async (req, res) => {
   try {
     const days = parseInt(req.params.days) || 30;
-    const history = await analyticsService.getCompletionHistory(req.userId, days);
+    const history = await analyticsService.getCompletionHistory(null, days);
     res.json(history);
   } catch (err) {
     sendError(res, err.message);

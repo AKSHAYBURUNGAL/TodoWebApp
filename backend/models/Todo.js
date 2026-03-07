@@ -2,13 +2,11 @@ const mongoose = require("mongoose");
 
 const TodoSchema = new mongoose.Schema({
   
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+  taskId: {
+    type: String,
+    unique: true,
     required: true
   },
-
-  // ===== Required Fields =====
   text: {
     type: String,
     required: true
@@ -31,13 +29,11 @@ const TodoSchema = new mongoose.Schema({
     default: "pending"
   },
 
-  // ===== Deprecated: Use 'status' field instead =====
   completed: {
     type: Boolean,
     default: false
   },
 
-  // ===== Recurrence & Scheduling =====
   recurrence: {
     type: String,
     enum: ["none", "daily", "weekly", "monthly", "yearly"],
@@ -60,28 +56,15 @@ const TodoSchema = new mongoose.Schema({
     default: null
   },
 
-  // For recurring tasks: which days of week (0-6, where 0 is Sunday)
   recurrenceDays: {
     type: [Number],
     default: []
   },
 
-  // Parent task ID for generated daily tasks
-  parentTaskId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Todo",
-    default: null
-  },
-
-  // Track completion history
   completionHistory: [{
     completedAt: {
       type: Date,
       default: Date.now
-    },
-    completedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
     }
   }],
 
@@ -90,16 +73,11 @@ const TodoSchema = new mongoose.Schema({
     default: "general"
   },
 
-  // ===== Metadata =====
+
   createdAt: {
     type: Date,
     default: Date.now
   },
-
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
-}, { timestamps: true });
+}, { strict: false });
 
 module.exports = mongoose.model("Todo", TodoSchema);
