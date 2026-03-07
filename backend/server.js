@@ -5,24 +5,46 @@ require("dotenv").config({ quiet: true });
 
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
 const app = express();
 
-// Configure CORS with frontend URL
-app.use(cors({
-  origin: [FRONTEND_URL, "http://localhost:3000"],
-  credentials: true
-}));
+// Allow same-origin and configured cross-origin calls.
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 const todoRoutes = require("./routes/todos");
 
-app.use("/api/todos", todoRoutes);
+let dbConnectPromise;
+const connectToDatabase = async () => {
+  if (!MONGODB_URI) {
+    throw new Error("MONGODB_URI is not set");
+  }
 
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log("✓ MongoDB connected successfully"))
-  .catch(err => console.error("✗ MongoDB connection error:", err.message));
+  if (!dbConnectPromise) {
+    dbConnectPromise = mongoose.connect(MONGODB_URI)
+      .then(() => {
+        console.log("✓ MongoDB connected successfully");
+      })
+      .catch((err) => {
+        dbConnectPromise = null;
+        throw err;
+      });
+  }
+
+  return dbConnectPromise;
+};
+
+app.use(async (req, res, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (err) {
+    console.error("✗ MongoDB connection error:", err.message);
+    res.status(500).json({ error: "Database connection failed" });
+  }
+});
+
+app.use("/api/todos", todoRoutes);
 
 if (require.main === module) {
   app.listen(PORT, () => {
