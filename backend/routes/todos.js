@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const Todo = require("../models/Todo");
 const analyticsService = require("../services/analyticsService");
-const { v7: uuidv7 } = require("uuid");
+const { randomUUID } = require("crypto");
 
 const sendError = (res, message, statusCode = 500) => {
   console.error("Error:", message);
@@ -174,7 +174,7 @@ router.post("/", async (req, res) => {
     if (!text || !text.trim()) {
       return sendError(res, "Todo title is required", 400);
     }
-    const taskId = uuidv7();
+    const taskId = randomUUID();
 
     const todo = new Todo({
       taskId,
