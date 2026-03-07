@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -24,7 +24,7 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log("✓ MongoDB connected successfully"))
   .catch(err => console.error("✗ MongoDB connection error:", err.message));
 
-if (process.env.VERCEL !== "1") {
+if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`✓ Server running on http://localhost:${PORT}`);
   });
