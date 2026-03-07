@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL from "../config/apiConfig";
 import "../styles/TaskManager.css";
 
 const TaskManager = ({ token, onTasksChange }) => {
@@ -36,7 +37,7 @@ const TaskManager = ({ token, onTasksChange }) => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:5000/api/todos");
+      const response = await axios.get(API_BASE_URL);
       setTasks(response.data);
       setError(null);
       if (onTasksChange) onTasksChange(response.data);
@@ -96,11 +97,11 @@ const TaskManager = ({ token, onTasksChange }) => {
 
       if (editingId) {
         await axios.put(
-          `http://localhost:5000/api/todos/${editingId}`,
+          `${API_BASE_URL}/${editingId}`,
           formData
         );
       } else {
-        await axios.post("http://localhost:5000/api/todos", formData);
+        await axios.post(API_BASE_URL, formData);
       }
 
       await fetchTasks();
@@ -134,7 +135,7 @@ const TaskManager = ({ token, onTasksChange }) => {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/todos/${id}`);
+      await axios.delete(`${API_BASE_URL}/${id}`);
       await fetchTasks();
     } catch (err) {
       console.error("Error deleting task:", err);
@@ -147,7 +148,7 @@ const TaskManager = ({ token, onTasksChange }) => {
       const endpoint =
         currentStatus === "completed" ? "uncomplete" : "complete";
       await axios.patch(
-        `http://localhost:5000/api/todos/${id}/${endpoint}`,
+        `${API_BASE_URL}/${id}/${endpoint}`,
         {}
       );
       await fetchTasks();

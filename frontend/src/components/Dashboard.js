@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL from "../config/apiConfig";
 import {
   LineChart,
   Line,
@@ -30,7 +31,7 @@ const Dashboard = ({ token }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        "http://localhost:5000/api/todos/analytics/dashboard/overview"
+        `${API_BASE_URL}/analytics/dashboard/overview`
       );
       setDashboardData(response.data);
       setError(null);

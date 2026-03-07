@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL from "../config/apiConfig";
 import "../styles/DailyChecklist.css";
 
 const DailyChecklist = ({ token }) => {
@@ -18,7 +19,7 @@ const DailyChecklist = ({ token }) => {
       setLoading(true);
       const dateStr = selectedDate.toISOString().split("T")[0];
       const response = await axios.get(
-        `http://localhost:5000/api/todos/daily/${dateStr}`
+        `${API_BASE_URL}/daily/${dateStr}`
       );
       setTodaysTasks(response.data);
       calculateStats(response.data);
@@ -44,7 +45,7 @@ const DailyChecklist = ({ token }) => {
       const endpoint =
         currentStatus === "completed" ? "uncomplete" : "complete";
       await axios.patch(
-        `http://localhost:5000/api/todos/${id}/${endpoint}`,
+        `${API_BASE_URL}/${id}/${endpoint}`,
         {}
       );
       await fetchDailyTasks();

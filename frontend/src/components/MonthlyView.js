@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL from "../config/apiConfig";
 import "../styles/MonthlyView.css";
 
 const MonthlyView = ({ token }) => {
@@ -26,7 +27,7 @@ const MonthlyView = ({ token }) => {
       const lastDay = new Date(year, month + 1, 0);
 
       const response = await axios.get(
-        `http://localhost:5000/api/todos/monthly/${year}/${month + 1}`
+        `${API_BASE_URL}/monthly/${year}/${month + 1}`
       );
 
       // Organize tasks by day of month
@@ -130,11 +131,8 @@ const MonthlyView = ({ token }) => {
 
       const endpoint = currentStatus === "completed" ? "uncomplete" : "complete";
       await axios.patch(
-        `http://localhost:5000/api/todos/${id}/${endpoint}?date=${dateStr}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `${API_BASE_URL}/${id}/${endpoint}?date=${dateStr}`,
+        {}
       );
       await fetchMonthlyTasks();
     } catch (err) {

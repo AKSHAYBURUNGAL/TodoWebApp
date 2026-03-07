@@ -7,7 +7,7 @@ import WeeklyView from "./components/WeeklyView";
 import MonthlyView from "./components/MonthlyView";
 import "./App.css";
 
-const API_URL = "http://localhost:5000/api/todos";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/todos";
 
 
 const INITIAL_FORM_STATE = {

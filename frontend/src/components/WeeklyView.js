@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL from "../config/apiConfig";
 import "../styles/WeeklyView.css";
 
 const WeeklyView = ({ token }) => {
@@ -29,7 +30,7 @@ const WeeklyView = ({ token }) => {
       endOfWeek.setDate(endOfWeek.getDate() + 6);
 
       const response = await axios.get(
-        `http://localhost:5000/api/todos/weekly/${startOfWeek.toISOString().split("T")[0]}`
+        `${API_BASE_URL}/weekly/${startOfWeek.toISOString().split("T")[0]}`
       );
 
       // Organize tasks by day of week
@@ -139,11 +140,8 @@ const WeeklyView = ({ token }) => {
       
       const endpoint = currentStatus === "completed" ? "uncomplete" : "complete";
       await axios.patch(
-        `http://localhost:5000/api/todos/${id}/${endpoint}?date=${dateStr}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `${API_BASE_URL}/${id}/${endpoint}?date=${dateStr}`,
+        {}
       );
       await fetchWeeklyTasks();
     } catch (err) {
