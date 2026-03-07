@@ -22,9 +22,5 @@
       "src": "/(.*)",
       "dest": "frontend/build/$1"
     }
-  ],
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "NODE_ENV": "production"
-  }
+  ]
 }
