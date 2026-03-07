@@ -30,10 +30,7 @@ const Dashboard = ({ token }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        "http://localhost:5000/api/todos/analytics/dashboard/overview",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        "http://localhost:5000/api/todos/analytics/dashboard/overview"
       );
       setDashboardData(response.data);
       setError(null);

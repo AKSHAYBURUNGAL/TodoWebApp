@@ -18,10 +18,7 @@ const DailyChecklist = ({ token }) => {
       setLoading(true);
       const dateStr = selectedDate.toISOString().split("T")[0];
       const response = await axios.get(
-        `http://localhost:5000/api/todos/daily/${dateStr}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `http://localhost:5000/api/todos/daily/${dateStr}`
       );
       setTodaysTasks(response.data);
       calculateStats(response.data);
@@ -48,10 +45,7 @@ const DailyChecklist = ({ token }) => {
         currentStatus === "completed" ? "uncomplete" : "complete";
       await axios.patch(
         `http://localhost:5000/api/todos/${id}/${endpoint}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        {}
       );
       await fetchDailyTasks();
     } catch (err) {

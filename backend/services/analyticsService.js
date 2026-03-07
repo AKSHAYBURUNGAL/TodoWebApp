@@ -10,14 +10,15 @@ async function getDailyCompletionPercentage(userId, date) {
   const endOfDay = new Date(date);
   endOfDay.setHours(23, 59, 59, 999);
 
-  const todos = await Todo.find({
-    userId,
+  const query = {
     startDate: { $lte: endOfDay },
     $or: [
       { dueDate: { $gte: startOfDay, $lte: endOfDay } },
       { dueDate: null, createdAt: { $lte: endOfDay } }
     ]
-  });
+  };
+
+  const todos = await Todo.find(query);
 
   if (todos.length === 0) return 0;
 
@@ -29,14 +30,15 @@ async function getDailyCompletionPercentage(userId, date) {
  * Get completion percentage for a date range
  */
 async function getCompletionPercentageRange(userId, startDate, endDate) {
-  const todos = await Todo.find({
-    userId,
+  const query = {
     startDate: { $lte: endDate },
     $or: [
       { dueDate: { $gte: startDate, $lte: endDate } },
       { dueDate: null, createdAt: { $lte: endDate } }
     ]
-  });
+  };
+
+  const todos = await Todo.find(query);
 
   if (todos.length === 0) return 0;
 
@@ -132,7 +134,7 @@ async function getMonthlyProductivity(userId, months = 12) {
  * Get total task statistics
  */
 async function getTaskStatistics(userId) {
-  const todos = await Todo.find({ userId });
+  const todos = await Todo.find({});
 
   const totalTasks = todos.length;
   const completedTasks = todos.filter(t => t.status === "completed").length;
@@ -168,7 +170,6 @@ async function getCompletionHistory(userId, days = 30) {
   startDate.setDate(startDate.getDate() - days);
 
   const todos = await Todo.find({
-    userId,
     completionHistory: { $exists: true, $ne: [] }
   });
 
@@ -217,11 +218,11 @@ async function getCompletionHistory(userId, days = 30) {
  * Get overview dashboard data
  */
 async function getDashboardOverview(userId) {
-  const stats = await getTaskStatistics(userId);
-  const dailyData = await getDailyProductivity(userId, 7);
-  const weeklyData = await getWeeklyProductivity(userId, 4);
-  const monthlyData = await getMonthlyProductivity(userId, 12);
-  const completionHistory = await getCompletionHistory(userId, 30);
+  const stats = await getTaskStatistics();
+  const dailyData = await getDailyProductivity(null, 7);
+  const weeklyData = await getWeeklyProductivity(null, 4);
+  const monthlyData = await getMonthlyProductivity(null, 12);
+  const completionHistory = await getCompletionHistory(null, 30);
 
   return {
     statistics: stats,

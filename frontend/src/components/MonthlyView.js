@@ -26,10 +26,7 @@ const MonthlyView = ({ token }) => {
       const lastDay = new Date(year, month + 1, 0);
 
       const response = await axios.get(
-        `http://localhost:5000/api/todos/monthly/${year}/${month + 1}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `http://localhost:5000/api/todos/monthly/${year}/${month + 1}`
       );
 
       // Organize tasks by day of month

@@ -29,10 +29,7 @@ const WeeklyView = ({ token }) => {
       endOfWeek.setDate(endOfWeek.getDate() + 6);
 
       const response = await axios.get(
-        `http://localhost:5000/api/todos/weekly/${startOfWeek.toISOString().split("T")[0]}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `http://localhost:5000/api/todos/weekly/${startOfWeek.toISOString().split("T")[0]}`
       );
 
       // Organize tasks by day of week

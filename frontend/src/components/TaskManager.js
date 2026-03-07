@@ -36,9 +36,7 @@ const TaskManager = ({ token, onTasksChange }) => {
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:5000/api/todos", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get("http://localhost:5000/api/todos");
       setTasks(response.data);
       setError(null);
       if (onTasksChange) onTasksChange(response.data);
@@ -99,15 +97,10 @@ const TaskManager = ({ token, onTasksChange }) => {
       if (editingId) {
         await axios.put(
           `http://localhost:5000/api/todos/${editingId}`,
-          formData,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          formData
         );
       } else {
-        await axios.post("http://localhost:5000/api/todos", formData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axios.post("http://localhost:5000/api/todos", formData);
       }
 
       await fetchTasks();
@@ -141,9 +134,7 @@ const TaskManager = ({ token, onTasksChange }) => {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/todos/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(`http://localhost:5000/api/todos/${id}`);
       await fetchTasks();
     } catch (err) {
       console.error("Error deleting task:", err);
@@ -157,10 +148,7 @@ const TaskManager = ({ token, onTasksChange }) => {
         currentStatus === "completed" ? "uncomplete" : "complete";
       await axios.patch(
         `http://localhost:5000/api/todos/${id}/${endpoint}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        {}
       );
       await fetchTasks();
     } catch (err) {
