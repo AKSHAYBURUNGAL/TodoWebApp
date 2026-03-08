@@ -5,9 +5,11 @@ import TaskManager from "./components/TaskManager";
 import DailyChecklist from "./components/DailyChecklist";
 import WeeklyView from "./components/WeeklyView";
 import MonthlyView from "./components/MonthlyView";
+import API_BASE_URL from "./config/apiConfig";
 import "./App.css";
 
-const API_URL = process.env.REACT_APP_API_URL || "/api/todos";
+// Use environment variable for API URL, with fallback to relative path for development
+const API_URL = process.env.REACT_APP_API_URL || API_BASE_URL || "/api/todos";
 
 
 const INITIAL_FORM_STATE = {
