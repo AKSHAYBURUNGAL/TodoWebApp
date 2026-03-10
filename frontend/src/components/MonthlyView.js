@@ -2,9 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_BASE_URL from "../config/apiConfig";
 import Icon from "./Icon";
+import {
+  formatLocalDate,
+  getTaskStatusForDate,
+  taskOccursOnDate,
+} from "../utils/dateUtils";
 import "../styles/MonthlyView.css";
 
-const MonthlyView = ({ token }) => {
+const MonthlyView = ({ onTasksChange }) => {
   const [monthlyTasks, setMonthlyTasks] = useState({});
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [loading, setLoading] = useState(false);
@@ -24,46 +29,23 @@ const MonthlyView = ({ token }) => {
       setLoading(true);
       const year = selectedMonth.getFullYear();
       const month = selectedMonth.getMonth();
-      const firstDay = new Date(year, month, 1);
       const lastDay = new Date(year, month + 1, 0);
 
       const response = await axios.get(
         `${API_BASE_URL}/monthly/${year}/${month + 1}`
       );
 
-      // Organize tasks by day of month
       const organized = {};
       for (let i = 1; i <= lastDay.getDate(); i++) {
         organized[i] = [];
       }
 
       response.data.forEach((task) => {
-        if (task.recurrence === "monthly") {
-          // Add to the same day each month
-          const day = new Date(task.startDate).getDate();
-          if (day <= lastDay.getDate()) {
-            organized[day].push({ ...task, dayOfMonth: day });
-          }
-        } else if (task.recurrence === "daily") {
-          // Add daily tasks to every day of the month
-          for (let i = 1; i <= lastDay.getDate(); i++) {
-            organized[i].push({ ...task, dayOfMonth: i });
-          }
-        } else if (task.recurrence === "weekly" && task.recurrenceDays) {
-          // Add weekly tasks to matching days
-          for (let i = 1; i <= lastDay.getDate(); i++) {
-            const date = new Date(year, month, i);
-            const dayOfWeek = date.getDay();
-            if (task.recurrenceDays.includes(dayOfWeek)) {
-              organized[i].push({ ...task, dayOfMonth: i });
-            }
-          }
-        } else if (task.recurrence === "none") {
-          // Add one-time tasks on their due date
-          const taskDate = new Date(task.dueDate || task.startDate);
-          if (taskDate.getMonth() === month && taskDate.getFullYear() === year) {
-            const day = taskDate.getDate();
-            organized[day].push({ ...task, dayOfMonth: day });
+        for (let dayOfMonth = 1; dayOfMonth <= lastDay.getDate(); dayOfMonth += 1) {
+          const dayDate = new Date(year, month, dayOfMonth, 12, 0, 0, 0);
+
+          if (taskOccursOnDate(task, dayDate)) {
+            organized[dayOfMonth].push({ ...task, dayOfMonth });
           }
         }
       });
@@ -86,17 +68,12 @@ const MonthlyView = ({ token }) => {
     const month = selectedMonth.getMonth();
 
     Object.entries(tasks).forEach(([dayStr, dayTasks]) => {
-      const dayOfMonth = parseInt(dayStr);
-      const dateStr = new Date(year, month, dayOfMonth).toISOString().split("T")[0];
+      const dayOfMonth = parseInt(dayStr, 10);
+      const dayDate = new Date(year, month, dayOfMonth, 12, 0, 0, 0);
 
       dayTasks.forEach((task) => {
         totalTasks++;
-        if (task.recurrence !== "none" && task.completionHistory && task.completionHistory.length > 0) {
-          const isCompleted = task.completionHistory.some((record) => {
-            return record.completedAt.split("T")[0] === dateStr;
-          });
-          if (isCompleted) completedTasks++;
-        } else if (task.status === "completed") {
+        if (getTaskStatusForDate(task, dayDate) === "completed") {
           completedTasks++;
         }
       });
@@ -106,29 +83,13 @@ const MonthlyView = ({ token }) => {
     setMonthlyStats({ total: totalTasks, completed: completedTasks, percentage });
   };
 
-  const getTaskStatusForDate = (task, dayOfMonth) => {
-    if (task.recurrence === "none") {
-      return task.status;
-    }
-
-    const year = selectedMonth.getFullYear();
-    const month = selectedMonth.getMonth();
-    const dateStr = new Date(year, month, dayOfMonth).toISOString().split("T")[0];
-
-    if (task.completionHistory && task.completionHistory.length > 0) {
-      const isCompleted = task.completionHistory.some((record) => {
-        return record.completedAt.split("T")[0] === dateStr;
-      });
-      return isCompleted ? "completed" : "pending";
-    }
-    return "pending";
-  };
-
   const handleToggleComplete = async (id, currentStatus, dayOfMonth) => {
     try {
       const year = selectedMonth.getFullYear();
       const month = selectedMonth.getMonth();
-      const dateStr = new Date(year, month, dayOfMonth).toISOString().split("T")[0];
+      const dateStr = formatLocalDate(
+        new Date(year, month, dayOfMonth, 12, 0, 0, 0)
+      );
 
       const endpoint = currentStatus === "completed" ? "uncomplete" : "complete";
       await axios.patch(
@@ -136,6 +97,9 @@ const MonthlyView = ({ token }) => {
         {}
       );
       await fetchMonthlyTasks();
+      if (onTasksChange) {
+        await onTasksChange();
+      }
     } catch (err) {
       console.error("Error updating task:", err);
       setError("Failed to update task");
@@ -255,7 +219,18 @@ const MonthlyView = ({ token }) => {
             {/* Days of month */}
             {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
               const dayTasks = monthlyTasks[day] || [];
-              const completedCount = dayTasks.filter((t) => getTaskStatusForDate(t, day) === "completed").length;
+              const dayDate = new Date(
+                selectedMonth.getFullYear(),
+                selectedMonth.getMonth(),
+                day,
+                12,
+                0,
+                0,
+                0
+              );
+              const completedCount = dayTasks.filter(
+                (task) => getTaskStatusForDate(task, dayDate) === "completed"
+              ).length;
               const isToday =
                 day === new Date().getDate() &&
                 selectedMonth.getMonth() === new Date().getMonth() &&
@@ -278,19 +253,23 @@ const MonthlyView = ({ token }) => {
 
                   {dayTasks.length > 0 && (
                     <div className="day-task-preview">
-                      {dayTasks.slice(0, 3).map((task, idx) => (
+                      {dayTasks.slice(0, 3).map((task) => (
                         <div
                           key={`${task._id}-${day}`}
-                          className={`task-preview ${getTaskStatusForDate(task, day) === "completed" ? "completed" : ""}`}
+                          className={`task-preview ${getTaskStatusForDate(task, dayDate) === "completed" ? "completed" : ""}`}
                           title={task.text}
                         >
                           <input
                             type="checkbox"
                             id={`task-month-${task._id}-${day}`}
-                            checked={getTaskStatusForDate(task, day) === "completed"}
+                            checked={getTaskStatusForDate(task, dayDate) === "completed"}
                             onChange={(e) => {
                               e.stopPropagation();
-                              handleToggleComplete(task._id, getTaskStatusForDate(task, day), day);
+                              handleToggleComplete(
+                                task._id,
+                                getTaskStatusForDate(task, dayDate),
+                                day
+                              );
                             }}
                             className="task-checkbox-month"
                           />
@@ -300,7 +279,11 @@ const MonthlyView = ({ token }) => {
                             onClick={(e) => e.stopPropagation()}
                           >
                             <span className={`priority-dot priority-${task.priority}`}></span>
-                            <span className="task-name">{task.text.substring(0, 12)}...</span>
+                            <span className="task-name">
+                              {task.text.length > 12
+                                ? `${task.text.substring(0, 12)}...`
+                                : task.text}
+                            </span>
                           </label>
                         </div>
                       ))}

@@ -19,7 +19,7 @@ import {
 import Icon from "./Icon";
 import "../styles/Dashboard.css";
 
-const Dashboard = ({ token }) => {
+const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

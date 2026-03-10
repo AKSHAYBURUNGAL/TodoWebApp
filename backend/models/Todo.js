@@ -78,6 +78,10 @@ const TodoSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     },
+    completedDateKey: {
+      type: String,
+      default: null
+    },
     completedBy: {
       type: String,
       default: null

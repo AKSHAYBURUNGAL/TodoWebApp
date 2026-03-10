@@ -2,6 +2,16 @@ const router = require("express").Router();
 const { randomUUID } = require("crypto");
 const Todo = require("../models/Todo");
 const analyticsService = require("../services/analyticsService");
+const {
+  addDays,
+  buildOccurrenceCandidateQuery,
+  getCompletionDateKey,
+  getCurrentDateKey,
+  getDateKey,
+  parseDateKey,
+  taskOccursInRange,
+  taskOccursOnDate,
+} = require("../utils/taskSchedule");
 
 const sendError = (res, message, statusCode = 500) => {
   console.error("Error:", message);
@@ -12,6 +22,17 @@ const buildOwnerQuery = (userId) => ({ ownerId: userId });
 
 const findOwnedTodoById = (todoId, userId) =>
   Todo.findOne({ _id: todoId, ...buildOwnerQuery(userId) });
+
+const findTasksForRange = async (userId, startDate, endDate) => {
+  const todos = await Todo.find(
+    buildOccurrenceCandidateQuery(userId, startDate, endDate)
+  ).sort({
+    dueDate: 1,
+    priority: -1,
+  });
+
+  return todos.filter((todo) => taskOccursInRange(todo, startDate, endDate));
+};
 
 router.get("/", async (req, res) => {
   try {
@@ -30,29 +51,8 @@ router.get("/", async (req, res) => {
 
 router.get("/daily/today", async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const todos = await Todo.find({
-      ...buildOwnerQuery(req.userId),
-      $or: [
-        { dueDate: { $gte: today, $lt: tomorrow } },
-        {
-          recurrence: "daily",
-          startDate: { $lte: tomorrow },
-          $or: [{ endDate: null }, { endDate: { $gte: today } }],
-        },
-        {
-          recurrence: "weekly",
-          startDate: { $lte: tomorrow },
-          $or: [{ endDate: null }, { endDate: { $gte: today } }],
-          recurrenceDays: today.getDay(),
-        },
-      ],
-    }).sort({ priority: -1 });
+    const today = getCurrentDateKey();
+    const todos = await findTasksForRange(req.userId, today, today);
 
     return res.json(todos);
   } catch (error) {
@@ -63,29 +63,13 @@ router.get("/daily/today", async (req, res) => {
 
 router.get("/daily/:date", async (req, res) => {
   try {
-    const requestedDate = new Date(req.params.date);
-    requestedDate.setHours(0, 0, 0, 0);
+    const requestedDate = getDateKey(req.params.date);
 
-    const nextDate = new Date(requestedDate);
-    nextDate.setDate(nextDate.getDate() + 1);
+    if (!requestedDate) {
+      return sendError(res, "Invalid date format", 400);
+    }
 
-    const todos = await Todo.find({
-      ...buildOwnerQuery(req.userId),
-      $or: [
-        { dueDate: { $gte: requestedDate, $lt: nextDate } },
-        {
-          recurrence: "daily",
-          startDate: { $lte: nextDate },
-          $or: [{ endDate: null }, { endDate: { $gte: requestedDate } }],
-        },
-        {
-          recurrence: "weekly",
-          startDate: { $lte: nextDate },
-          $or: [{ endDate: null }, { endDate: { $gte: requestedDate } }],
-          recurrenceDays: requestedDate.getDay(),
-        },
-      ],
-    }).sort({ priority: -1 });
+    const todos = await findTasksForRange(req.userId, requestedDate, requestedDate);
 
     return res.json(todos);
   } catch (error) {
@@ -95,32 +79,18 @@ router.get("/daily/:date", async (req, res) => {
 
 router.get("/weekly/:date", async (req, res) => {
   try {
-    const startOfWeek = new Date(req.params.date);
-    startOfWeek.setHours(0, 0, 0, 0);
+    const requestedDate = getDateKey(req.params.date);
 
-    const dayOfWeek = startOfWeek.getDay();
-    startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
+    if (!requestedDate) {
+      return sendError(res, "Invalid date format", 400);
+    }
 
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(endOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
+    const startOfWeek = parseDateKey(requestedDate);
+    const dayOfWeek = startOfWeek.getUTCDay();
+    startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
+    const endOfWeek = addDays(startOfWeek, 6);
 
-    const todos = await Todo.find({
-      ...buildOwnerQuery(req.userId),
-      $or: [
-        { dueDate: { $gte: startOfWeek, $lte: endOfWeek } },
-        {
-          recurrence: "daily",
-          startDate: { $lte: endOfWeek },
-          $or: [{ endDate: null }, { endDate: { $gte: startOfWeek } }],
-        },
-        {
-          recurrence: "weekly",
-          startDate: { $lte: endOfWeek },
-          $or: [{ endDate: null }, { endDate: { $gte: startOfWeek } }],
-        },
-      ],
-    }).sort({ priority: -1 });
+    const todos = await findTasksForRange(req.userId, startOfWeek, endOfWeek);
 
     return res.json(todos);
   } catch (error) {
@@ -134,30 +104,14 @@ router.get("/monthly/:year/:month", async (req, res) => {
     const year = parseInt(req.params.year, 10);
     const month = parseInt(req.params.month, 10);
 
-    const firstDay = new Date(year, month - 1, 1);
-    const lastDay = new Date(year, month, 0);
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+      return sendError(res, "Invalid month or year", 400);
+    }
 
-    const todos = await Todo.find({
-      ...buildOwnerQuery(req.userId),
-      $or: [
-        { dueDate: { $gte: firstDay, $lte: lastDay } },
-        {
-          recurrence: "daily",
-          startDate: { $lte: lastDay },
-          $or: [{ endDate: null }, { endDate: { $gte: firstDay } }],
-        },
-        {
-          recurrence: "weekly",
-          startDate: { $lte: lastDay },
-          $or: [{ endDate: null }, { endDate: { $gte: firstDay } }],
-        },
-        {
-          recurrence: "monthly",
-          startDate: { $lte: lastDay },
-          $or: [{ endDate: null }, { endDate: { $gte: firstDay } }],
-        },
-      ],
-    }).sort({ priority: -1 });
+    const firstDay = new Date(Date.UTC(year, month - 1, 1));
+    const lastDay = new Date(Date.UTC(year, month, 0));
+
+    const todos = await findTasksForRange(req.userId, firstDay, lastDay);
 
     return res.json(todos);
   } catch (error) {
@@ -231,6 +185,10 @@ router.put("/:id", async (req, res) => {
     }
 
     if (text !== undefined) {
+      if (!text.trim()) {
+        return sendError(res, "Todo title is required", 400);
+      }
+
       todo.text = text.trim();
     }
     if (description !== undefined) {
@@ -275,25 +233,37 @@ router.put("/:id", async (req, res) => {
 router.patch("/:id/complete", async (req, res) => {
   try {
     const todo = await findOwnedTodoById(req.params.id, req.userId);
-    const completionDate = req.query.date ? new Date(req.query.date) : new Date();
+    const completionDateKey = req.query.date
+      ? getDateKey(req.query.date)
+      : getCurrentDateKey();
 
     if (!todo) {
       return sendError(res, "Todo not found", 404);
     }
+
+    if (!completionDateKey) {
+      return sendError(res, "Invalid date format", 400);
+    }
+
+    if (todo.recurrence !== "none" && !taskOccursOnDate(todo, completionDateKey)) {
+      return sendError(res, "Task does not occur on the selected date", 400);
+    }
+
+    const completionDate = parseDateKey(completionDateKey) || new Date();
 
     if (todo.recurrence !== "none") {
       if (!todo.completionHistory) {
         todo.completionHistory = [];
       }
 
-      const dateStr = completionDate.toISOString().split("T")[0];
       const existingRecord = todo.completionHistory.find(
-        (record) => record.completedAt.toISOString().split("T")[0] === dateStr
+        (record) => getCompletionDateKey(record) === completionDateKey
       );
 
       if (!existingRecord) {
         todo.completionHistory.push({
           completedAt: completionDate,
+          completedDateKey: completionDateKey,
           completedBy: req.userId,
         });
       }
@@ -305,10 +275,17 @@ router.patch("/:id/complete", async (req, res) => {
         todo.completionHistory = [];
       }
 
-      todo.completionHistory.push({
-        completedAt: completionDate,
-        completedBy: req.userId,
-      });
+      const existingRecord = todo.completionHistory.find(
+        (record) => getCompletionDateKey(record) === completionDateKey
+      );
+
+      if (!existingRecord) {
+        todo.completionHistory.push({
+          completedAt: completionDate,
+          completedDateKey: completionDateKey,
+          completedBy: req.userId,
+        });
+      }
     }
 
     await todo.save();
@@ -321,22 +298,32 @@ router.patch("/:id/complete", async (req, res) => {
 router.patch("/:id/uncomplete", async (req, res) => {
   try {
     const todo = await findOwnedTodoById(req.params.id, req.userId);
-    const completionDate = req.query.date ? new Date(req.query.date) : new Date();
+    const completionDateKey = req.query.date
+      ? getDateKey(req.query.date)
+      : getCurrentDateKey();
 
     if (!todo) {
       return sendError(res, "Todo not found", 404);
     }
 
+    if (!completionDateKey) {
+      return sendError(res, "Invalid date format", 400);
+    }
+
+    if (todo.recurrence !== "none" && !taskOccursOnDate(todo, completionDateKey)) {
+      return sendError(res, "Task does not occur on the selected date", 400);
+    }
+
     if (todo.recurrence !== "none") {
       if (todo.completionHistory) {
-        const dateStr = completionDate.toISOString().split("T")[0];
         todo.completionHistory = todo.completionHistory.filter(
-          (record) => record.completedAt.toISOString().split("T")[0] !== dateStr
+          (record) => getCompletionDateKey(record) !== completionDateKey
         );
       }
     } else {
       todo.status = "pending";
       todo.completed = false;
+      todo.completionHistory = [];
     }
 
     await todo.save();

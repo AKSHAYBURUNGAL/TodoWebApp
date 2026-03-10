@@ -1,63 +1,61 @@
 const Todo = require("../models/Todo");
+const {
+  addDays,
+  buildOccurrenceCandidateQuery,
+  countTaskOccurrencesInRange,
+  formatDisplayDate,
+  getCompletionDateKey,
+  getCurrentDateKey,
+  getDateKey,
+  taskOccursInRange,
+} = require("../utils/taskSchedule");
 
 const buildOwnerQuery = (userId) => ({ ownerId: userId });
 
+async function getTasksForRange(userId, startDate, endDate) {
+  const todos = await Todo.find(
+    buildOccurrenceCandidateQuery(userId, startDate, endDate)
+  );
+
+  return todos.filter((todo) => taskOccursInRange(todo, startDate, endDate));
+}
+
 async function getDailyCompletionPercentage(userId, date) {
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
+  const dateKey = getDateKey(date);
 
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
-
-  const todos = await Todo.find({
-    ...buildOwnerQuery(userId),
-    startDate: { $lte: endOfDay },
-    $or: [
-      { dueDate: { $gte: startOfDay, $lte: endOfDay } },
-      { dueDate: null, createdAt: { $lte: endOfDay } },
-    ],
-  });
-
-  if (todos.length === 0) {
+  if (!dateKey) {
     return 0;
   }
 
-  const completed = todos.filter((todo) => todo.status === "completed").length;
-  return Math.round((completed / todos.length) * 100);
+  const todos = await getTasksForRange(userId, dateKey, dateKey);
+  return countTaskOccurrencesInRange(todos, dateKey, dateKey).percentage;
 }
 
 async function getCompletionPercentageRange(userId, startDate, endDate) {
-  const todos = await Todo.find({
-    ...buildOwnerQuery(userId),
-    startDate: { $lte: endDate },
-    $or: [
-      { dueDate: { $gte: startDate, $lte: endDate } },
-      { dueDate: null, createdAt: { $lte: endDate } },
-    ],
-  });
+  const startDateKey = getDateKey(startDate);
+  const endDateKey = getDateKey(endDate);
 
-  if (todos.length === 0) {
+  if (!startDateKey || !endDateKey) {
     return 0;
   }
 
-  const completed = todos.filter((todo) => todo.status === "completed").length;
-  return Math.round((completed / todos.length) * 100);
+  const todos = await getTasksForRange(userId, startDateKey, endDateKey);
+  return countTaskOccurrencesInRange(todos, startDateKey, endDateKey).percentage;
 }
 
 async function getDailyProductivity(userId, days = 30) {
   const data = [];
-  const today = new Date();
+  const today = getCurrentDateKey();
 
   for (let index = days - 1; index >= 0; index -= 1) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - index);
-
-    const percentage = await getDailyCompletionPercentage(userId, date);
+    const date = addDays(today, -index);
+    const dateKey = getDateKey(date);
+    const percentage = await getDailyCompletionPercentage(userId, dateKey);
 
     data.push({
-      date: date.toISOString().split("T")[0],
+      date: dateKey,
       completion: percentage,
-      displayDate: date.toLocaleDateString("en-US", {
+      displayDate: formatDisplayDate(dateKey, {
         month: "short",
         day: "numeric",
       }),
@@ -69,23 +67,23 @@ async function getDailyProductivity(userId, days = 30) {
 
 async function getWeeklyProductivity(userId, weeks = 12) {
   const data = [];
-  const today = new Date();
+  const today = getCurrentDateKey();
 
   for (let index = weeks - 1; index >= 0; index -= 1) {
-    const endDate = new Date(today);
-    endDate.setDate(endDate.getDate() - index * 7);
-
-    const startDate = new Date(endDate);
-    startDate.setDate(startDate.getDate() - 6);
-
+    const endDate = addDays(today, -(index * 7));
+    const startDate = addDays(endDate, -6);
     const percentage = await getCompletionPercentageRange(userId, startDate, endDate);
-    const weekNumber = Math.floor((today - startDate) / (7 * 24 * 60 * 60 * 1000));
+    const startDateKey = getDateKey(startDate);
+    const endDateKey = getDateKey(endDate);
 
     data.push({
-      week: `Week ${weekNumber}`,
+      week: formatDisplayDate(startDateKey, {
+        month: "short",
+        day: "numeric",
+      }),
       completion: percentage,
-      startDate: startDate.toISOString().split("T")[0],
-      endDate: endDate.toISOString().split("T")[0],
+      startDate: startDateKey,
+      endDate: endDateKey,
     });
   }
 
@@ -97,21 +95,24 @@ async function getMonthlyProductivity(userId, months = 12) {
   const today = new Date();
 
   for (let index = months - 1; index >= 0; index -= 1) {
-    const endDate = new Date(today.getFullYear(), today.getMonth() - index, 1);
-    endDate.setMonth(endDate.getMonth() + 1);
-    endDate.setDate(0);
-
-    const startDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+    const startDate = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - index, 1)
+    );
+    const endDate = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - index + 1, 0)
+    );
     const percentage = await getCompletionPercentageRange(userId, startDate, endDate);
+    const startDateKey = getDateKey(startDate);
+    const endDateKey = getDateKey(endDate);
 
     data.push({
-      month: startDate.toLocaleDateString("en-US", {
+      month: formatDisplayDate(startDateKey, {
         month: "short",
         year: "2-digit",
       }),
       completion: percentage,
-      startDate: startDate.toISOString().split("T")[0],
-      endDate: endDate.toISOString().split("T")[0],
+      startDate: startDateKey,
+      endDate: endDateKey,
     });
   }
 
@@ -144,10 +145,9 @@ async function getTaskStatistics(userId) {
 }
 
 async function getCompletionHistory(userId, days = 30) {
-  const today = new Date();
-  const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - days);
-
+  const today = getCurrentDateKey();
+  const startDate = addDays(today, -(days - 1));
+  const startDateKey = getDateKey(startDate);
   const todos = await Todo.find({
     ...buildOwnerQuery(userId),
     completionHistory: { $exists: true, $ne: [] },
@@ -157,21 +157,22 @@ async function getCompletionHistory(userId, days = 30) {
   const dateMap = {};
 
   for (let index = 0; index < days; index += 1) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - index);
-    dateMap[date.toISOString().split("T")[0]] = 0;
+    const date = addDays(today, -index);
+    const dateKey = getDateKey(date);
+    dateMap[dateKey] = 0;
   }
 
   todos.forEach((todo) => {
     todo.completionHistory.forEach((completion) => {
-      const completedDate = new Date(completion.completedAt);
+      const dateKey = getCompletionDateKey(completion);
 
-      if (completedDate >= startDate && completedDate <= today) {
-        const dateKey = completedDate.toISOString().split("T")[0];
-
-        if (dateMap[dateKey] !== undefined) {
-          dateMap[dateKey] += 1;
-        }
+      if (
+        dateKey &&
+        dateKey >= startDateKey &&
+        dateKey <= today &&
+        dateMap[dateKey] !== undefined
+      ) {
+        dateMap[dateKey] += 1;
       }
     });
   });
@@ -182,7 +183,7 @@ async function getCompletionHistory(userId, days = 30) {
       history.push({
         date,
         tasksCompleted: dateMap[date],
-        displayDate: new Date(date).toLocaleDateString("en-US", {
+        displayDate: formatDisplayDate(date, {
           month: "short",
           day: "numeric",
         }),

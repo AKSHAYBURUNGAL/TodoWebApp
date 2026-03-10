@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_BASE_URL from "../config/apiConfig";
 import Icon from "./Icon";
+import { formatLocalDate, getTaskStatusForDate } from "../utils/dateUtils";
 import "../styles/DailyChecklist.css";
 
-const DailyChecklist = ({ token }) => {
+const DailyChecklist = ({ onTasksChange }) => {
   const [todaysTasks, setTodaysTasks] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ const DailyChecklist = ({ token }) => {
   const fetchDailyTasks = async () => {
     try {
       setLoading(true);
-      const dateStr = selectedDate.toISOString().split("T")[0];
+      const dateStr = formatLocalDate(selectedDate);
       const response = await axios.get(
         `${API_BASE_URL}/daily/${dateStr}`
       );
@@ -35,7 +36,9 @@ const DailyChecklist = ({ token }) => {
 
   const calculateStats = (tasks) => {
     const total = tasks.length;
-    const completed = tasks.filter((t) => t.status === "completed").length;
+    const completed = tasks.filter(
+      (task) => getTaskStatusForDate(task, selectedDate) === "completed"
+    ).length;
     const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
 
     setStats({ total, completed, percentage });
@@ -43,13 +46,17 @@ const DailyChecklist = ({ token }) => {
 
   const handleToggleComplete = async (id, currentStatus) => {
     try {
+      const dateStr = formatLocalDate(selectedDate);
       const endpoint =
         currentStatus === "completed" ? "uncomplete" : "complete";
       await axios.patch(
-        `${API_BASE_URL}/${id}/${endpoint}`,
+        `${API_BASE_URL}/${id}/${endpoint}?date=${dateStr}`,
         {}
       );
       await fetchDailyTasks();
+      if (onTasksChange) {
+        await onTasksChange();
+      }
     } catch (err) {
       console.error("Error updating task:", err);
       setError("Failed to update task");
@@ -176,6 +183,7 @@ const DailyChecklist = ({ token }) => {
                     <TaskChecklistItem
                       key={task._id}
                       task={task}
+                      selectedDate={selectedDate}
                       onToggle={handleToggleComplete}
                     />
                   ))}
@@ -199,6 +207,7 @@ const DailyChecklist = ({ token }) => {
                     <TaskChecklistItem
                       key={task._id}
                       task={task}
+                      selectedDate={selectedDate}
                       onToggle={handleToggleComplete}
                     />
                   ))}
@@ -222,6 +231,7 @@ const DailyChecklist = ({ token }) => {
                     <TaskChecklistItem
                       key={task._id}
                       task={task}
+                      selectedDate={selectedDate}
                       onToggle={handleToggleComplete}
                     />
                   ))}
@@ -255,8 +265,9 @@ const DailyChecklist = ({ token }) => {
 };
 
 // Task Item Component
-const TaskChecklistItem = ({ task, onToggle }) => {
-  const isCompleted = task.status === "completed";
+const TaskChecklistItem = ({ task, selectedDate, onToggle }) => {
+  const taskStatus = getTaskStatusForDate(task, selectedDate);
+  const isCompleted = taskStatus === "completed";
 
   return (
     <div className={`checklist-item ${isCompleted ? "completed" : ""}`}>
@@ -264,7 +275,7 @@ const TaskChecklistItem = ({ task, onToggle }) => {
         <input
           type="checkbox"
           checked={isCompleted}
-          onChange={() => onToggle(task._id, task.status)}
+          onChange={() => onToggle(task._id, taskStatus)}
           className="task-checkbox"
         />
         <span className="checkmark"></span>

@@ -11,8 +11,7 @@ import API_BASE_URL, { AUTH_API_BASE_URL } from "./config/apiConfig";
 import buddhaBackground from "./assets/buddha-statue-with-flowers.jpg";
 import "./App.css";
 
-// Use environment variable for API URL, with fallback to relative path for development
-const API_URL = process.env.REACT_APP_API_URL || API_BASE_URL || "/api/todos";
+const API_URL = API_BASE_URL;
 
 
 const INITIAL_FORM_STATE = {
@@ -282,7 +281,7 @@ function App() {
 
       applyAuthToken(session.token);
       saveCurrentSession(session);
-      setAuthStatus("authenticated");
+      setAuthStatus("checking");
       setCurrentUser(session);
       return { success: true };
     } catch (error) {
@@ -316,7 +315,7 @@ function App() {
 
       applyAuthToken(session.token);
       saveCurrentSession(session);
-      setAuthStatus("authenticated");
+      setAuthStatus("checking");
       setCurrentUser(session);
       return { success: true };
     } catch (error) {
@@ -461,15 +460,15 @@ function App() {
         {/* Tab Content */}
         <div className="tab-content">
           {activeTab === "checklist" && (
-            <DailyChecklist />
+            <DailyChecklist onTasksChange={fetchTodos} />
           )}
 
           {activeTab === "weekly" && (
-            <WeeklyView />
+            <WeeklyView onTasksChange={fetchTodos} />
           )}
 
           {activeTab === "monthly" && (
-            <MonthlyView />
+            <MonthlyView onTasksChange={fetchTodos} />
           )}
 
           {activeTab === "tasks" && (

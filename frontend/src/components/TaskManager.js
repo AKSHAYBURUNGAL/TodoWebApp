@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_BASE_URL from "../config/apiConfig";
 import Icon from "./Icon";
+import { formatLocalDate, getDateInputValue } from "../utils/dateUtils";
 import "../styles/TaskManager.css";
 
-const TaskManager = ({ token, onTasksChange }) => {
+const TaskManager = ({ onTasksChange }) => {
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,7 @@ const TaskManager = ({ token, onTasksChange }) => {
     text: "",
     description: "",
     priority: "medium",
-    startDate: new Date().toISOString().split("T")[0],
+    startDate: formatLocalDate(new Date()),
     dueDate: "",
     endDate: "",
     category: "general",
@@ -121,9 +122,9 @@ const TaskManager = ({ token, onTasksChange }) => {
       text: task.text,
       description: task.description,
       priority: task.priority,
-      startDate: task.startDate.split("T")[0],
-      dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
-      endDate: task.endDate ? task.endDate.split("T")[0] : "",
+      startDate: getDateInputValue(task.startDate),
+      dueDate: getDateInputValue(task.dueDate),
+      endDate: getDateInputValue(task.endDate),
       category: task.category,
       recurrence: task.recurrence,
       recurrenceDays: task.recurrenceDays || [],
@@ -164,7 +165,7 @@ const TaskManager = ({ token, onTasksChange }) => {
       text: "",
       description: "",
       priority: "medium",
-      startDate: new Date().toISOString().split("T")[0],
+      startDate: formatLocalDate(new Date()),
       dueDate: "",
       endDate: "",
       category: "general",
