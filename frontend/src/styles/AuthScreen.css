@@ -5,14 +5,17 @@
   justify-content: center;
   padding: 24px 0;
   width: 100%;
-  overflow-x: clip;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
   overscroll-behavior-x: none;
   touch-action: pan-y;
 }
 
 .auth-card {
   width: min(100%, 440px);
-  max-width: calc(100vw - 28px);
+  max-width: 100%;
+  min-width: 0;
   padding: 28px;
   border-radius: 28px;
   background: linear-gradient(
@@ -200,7 +203,7 @@
 
   .auth-card {
     width: 100%;
-    max-width: calc(100vw - 20px);
+    max-width: 100%;
     padding: 22px 18px max(20px, env(safe-area-inset-bottom));
     border-radius: 24px;
     margin: 0 auto;
@@ -265,7 +268,7 @@
   }
 
   .auth-card {
-    max-width: calc(100vw - 12px);
+    max-width: 100%;
     padding: 18px 14px max(16px, env(safe-area-inset-bottom));
     border-radius: 20px;
   }
