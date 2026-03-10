@@ -4,10 +4,15 @@
   align-items: center;
   justify-content: center;
   padding: 24px 0;
+  width: 100%;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
 }
 
 .auth-card {
   width: min(100%, 440px);
+  max-width: calc(100vw - 28px);
   padding: 28px;
   border-radius: 28px;
   background: linear-gradient(
@@ -182,9 +187,12 @@
 @media (max-width: 600px) {
   .auth-layout {
     padding: 8px 0 18px;
+    align-items: flex-start;
   }
 
   .auth-card {
+    width: 100%;
+    max-width: calc(100vw - 20px);
     padding: 22px 18px;
     border-radius: 22px;
   }

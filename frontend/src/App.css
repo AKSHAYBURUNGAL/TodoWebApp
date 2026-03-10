@@ -30,6 +30,12 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
+}
+
+#root {
+  min-height: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -40,6 +46,8 @@ body {
     max(20px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
   color: var(--ink-primary);
   overflow-x: hidden;
+  overscroll-behavior-x: none;
+  -webkit-tap-highlight-color: transparent;
   line-height: 1.5;
 }
 
@@ -47,6 +55,8 @@ body {
   position: relative;
   min-height: calc(100vh - 28px);
   isolation: isolate;
+  overflow-x: clip;
+  touch-action: pan-y;
 }
 
 .app-shell::before {
@@ -121,6 +131,7 @@ body {
   margin: 0 auto;
   width: 100%;
   position: relative;
+  overflow-x: clip;
 }
 
 .title-with-icon {
@@ -620,9 +631,19 @@ body {
   }
 
   .app-shell::before {
+    position: absolute;
+    inset: 0;
     animation: none;
-    transform: scale(1.08);
-    background-position: 54% center;
+    transform: none;
+    background-position: 54% top;
+    background-size: cover;
+  }
+
+  .app-shell::after {
+    position: absolute;
+    inset: 0;
+    animation: none;
+    opacity: 0.7;
   }
 
   .header {
@@ -630,6 +651,7 @@ body {
     margin-bottom: 20px;
     padding: 20px;
     border-radius: 24px;
+    backdrop-filter: blur(16px) saturate(130%);
   }
 
   .subtitle {
@@ -670,10 +692,21 @@ body {
   .tab-content {
     min-height: 0;
     border-radius: 24px;
+    backdrop-filter: blur(16px) saturate(130%);
   }
 
   .ambient-orb {
-    opacity: 0.3;
+    display: none;
+  }
+
+  .header::before,
+  .header-mantra,
+  .focus-card {
+    animation: none;
+  }
+
+  .nav-tabs {
+    backdrop-filter: blur(16px) saturate(130%);
   }
 }
 
