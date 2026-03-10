@@ -550,6 +550,15 @@ body {
   }
 }
 
+@keyframes mobileBackgroundDrift {
+  from {
+    transform: scale(1.03) translate3d(-1%, -0.5%, 0);
+  }
+  to {
+    transform: scale(1.06) translate3d(1%, 1.25%, 0);
+  }
+}
+
 @keyframes auraPulse {
   0%,
   100% {
@@ -637,10 +646,12 @@ body {
   .app-shell::before {
     position: absolute;
     inset: 0;
-    animation: none;
-    transform: none;
+    animation: mobileBackgroundDrift 22s ease-in-out infinite alternate;
+    transform: scale(1.03);
+    transform-origin: center top;
     background-position: 54% top;
     background-size: cover;
+    will-change: transform;
   }
 
   .app-shell::after {

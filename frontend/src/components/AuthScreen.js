@@ -87,6 +87,10 @@ function AuthScreen({ onLogin, onRegister }) {
               placeholder="Enter your name"
               className="auth-input"
               autoComplete="name"
+              autoCapitalize="words"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint={mode === "login" ? "go" : "done"}
               disabled={isSubmitting}
             />
           </div>
