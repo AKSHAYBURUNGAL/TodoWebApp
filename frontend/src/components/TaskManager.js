@@ -202,124 +202,191 @@ const TaskManager = ({ token, onTasksChange }) => {
 
       {showForm && (
         <form className="task-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="text">Task Title *</label>
-            <input
-              type="text"
-              id="text"
-              name="text"
-              value={formData.text}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter task title"
-            />
+          <div className="task-form-hero">
+            <div>
+              <p className="task-form-eyebrow">
+                {editingId ? "Refine your focus" : "Mindful task creation"}
+              </p>
+              <h2 className="task-form-title">
+                {editingId ? "Update your task" : "Create a clear next action"}
+              </h2>
+              <p className="task-form-copy">
+                Keep it simple, choose the right rhythm, and let the task fit naturally into your day.
+              </p>
+            </div>
+
+            <div className="task-form-chip">
+              <Icon name={editingId ? "edit" : "plus"} size={16} />
+              <span>{editingId ? "Editing mode" : "New task"}</span>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Enter task description (optional)"
-              rows="3"
-            />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="priority">Priority</label>
-              <select
-                id="priority"
-                name="priority"
-                value={formData.priority}
-                onChange={handleInputChange}
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+          <div className="task-form-panel">
+            <div className="task-form-panel-header">
+              <span className="task-form-panel-icon">
+                <Icon name="clipboard" size={16} />
+              </span>
+              <div>
+                <h3>Task details</h3>
+                <p>Write one focused task with enough context to act on it later.</p>
+              </div>
             </div>
 
             <div className="form-group">
-              <label htmlFor="recurrence">Recurrence</label>
-              <select
-                id="recurrence"
-                name="recurrence"
-                value={formData.recurrence}
-                onChange={handleInputChange}
-              >
-                <option value="none">No Recurrence</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="category">Category</label>
+              <label htmlFor="text">Task Title *</label>
               <input
                 type="text"
-                id="category"
-                name="category"
-                value={formData.category}
+                id="text"
+                name="text"
+                value={formData.text}
                 onChange={handleInputChange}
-                placeholder="e.g., Work, Personal"
+                required
+                placeholder="Enter task title"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="description">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Enter task description (optional)"
+                rows="3"
               />
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="startDate">Start Date</label>
-              <input
-                type="date"
-                id="startDate"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleInputChange}
-              />
+          <div className="task-form-panel">
+            <div className="task-form-panel-header">
+              <span className="task-form-panel-icon">
+                <Icon name="flag" size={16} />
+              </span>
+              <div>
+                <h3>Planning</h3>
+                <p>Set the importance, category, and repeat pattern in one place.</p>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="dueDate">Due Date</label>
-              <input
-                type="date"
-                id="dueDate"
-                name="dueDate"
-                value={formData.dueDate}
-                onChange={handleInputChange}
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="priority">Priority</label>
+                <select
+                  id="priority"
+                  name="priority"
+                  value={formData.priority}
+                  onChange={handleInputChange}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="recurrence">Recurrence</label>
+                <select
+                  id="recurrence"
+                  name="recurrence"
+                  value={formData.recurrence}
+                  onChange={handleInputChange}
+                >
+                  <option value="none">No Recurrence</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="category">Category</label>
+                <input
+                  type="text"
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Work, Personal"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="task-form-panel">
+            <div className="task-form-panel-header">
+              <span className="task-form-panel-icon">
+                <Icon name="calendarDay" size={16} />
+              </span>
+              <div>
+                <h3>Schedule</h3>
+                <p>Choose when the task starts, when it is due, and when it should stop repeating.</p>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="endDate">End Date (for recurring tasks)</label>
-              <input
-                type="date"
-                id="endDate"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleInputChange}
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="startDate">Start Date</label>
+                <input
+                  type="date"
+                  id="startDate"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="dueDate">Due Date</label>
+                <input
+                  type="date"
+                  id="dueDate"
+                  name="dueDate"
+                  value={formData.dueDate}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="endDate">End Date (for recurring tasks)</label>
+                <input
+                  type="date"
+                  id="endDate"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
           </div>
 
           {formData.recurrence === "weekly" && (
-            <div className="form-group">
-              <label>Repeat on Days:</label>
-              <div className="days-selector">
-                {dayLabels.map((label, index) => (
-                  <label key={index} className="day-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={formData.recurrenceDays.includes(index)}
-                      onChange={() => handleDayToggle(index)}
-                    />
-                    {label}
-                  </label>
-                ))}
+            <div className="task-form-panel">
+              <div className="task-form-panel-header">
+                <span className="task-form-panel-icon">
+                  <Icon name="calendarWeek" size={16} />
+                </span>
+                <div>
+                  <h3>Weekly rhythm</h3>
+                  <p>Select the days when this habit or recurring task should appear.</p>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Repeat on Days:</label>
+                <div className="days-selector">
+                  {dayLabels.map((label, index) => (
+                    <label key={index} className="day-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={formData.recurrenceDays.includes(index)}
+                        onChange={() => handleDayToggle(index)}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
           )}
