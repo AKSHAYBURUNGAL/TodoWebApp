@@ -3,8 +3,7 @@
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, sans-serif;
+  color: var(--ink-primary);
 }
 
 .dashboard.loading,
@@ -14,7 +13,7 @@
   align-items: center;
   min-height: 400px;
   font-size: 18px;
-  color: #666;
+  color: var(--ink-secondary);
 }
 
 .dashboard.error {
@@ -24,16 +23,16 @@
 
 .dashboard.error button {
   padding: 10px 20px;
-  background-color: #2196f3;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(22, 36, 59, 0.92), rgba(88, 104, 145, 0.78));
+  color: var(--cream);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
   cursor: pointer;
   font-size: 16px;
 }
 
 .dashboard.error button:hover {
-  background-color: #1976d2;
+  transform: translateY(-1px);
 }
 
 .dashboard-header {
@@ -43,7 +42,7 @@
 .dashboard-header h1 {
   font-size: 32px;
   margin: 0;
-  color: #333;
+  color: var(--ink-primary);
 }
 
 /* Statistics Grid */
@@ -55,17 +54,15 @@
 }
 
 .stat-card {
-  background: white;
-  border-radius: 8px;
+  border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #2196f3;
+  border-left: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .stat-card h3 {
   font-size: 14px;
   margin: 0 0 10px 0;
-  color: #666;
+  color: var(--ink-secondary);
   text-transform: uppercase;
   font-weight: 600;
 }
@@ -74,37 +71,37 @@
   font-size: 32px;
   font-weight: bold;
   margin: 0;
-  color: #333;
+  color: var(--ink-primary);
 }
 
 .stat-card.success {
-  border-left-color: #4caf50;
+  border-left-color: rgba(123, 168, 154, 0.54);
 }
 
 .stat-card.success .stat-value {
-  color: #4caf50;
+  color: #476d63;
 }
 
 .stat-card.warning {
-  border-left-color: #ff9800;
+  border-left-color: rgba(212, 177, 120, 0.54);
 }
 
 .stat-card.warning .stat-value {
-  color: #ff9800;
+  color: #9d6d1d;
 }
 
 .stat-card.info {
-  border-left-color: #2196f3;
+  border-left-color: rgba(127, 149, 203, 0.54);
 }
 
 .stat-card.info .stat-value {
-  color: #2196f3;
+  color: #51649a;
 }
 
 /* Charts Grid */
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 30px;
 }
 
@@ -115,17 +112,15 @@
 }
 
 .chart-container {
-  background: white;
-  border-radius: 8px;
+  border-radius: 22px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
 .chart-container h2 {
   font-size: 18px;
   margin: 0 0 20px 0;
-  color: #333;
+  color: var(--ink-primary);
   font-weight: 600;
 }
 
@@ -141,10 +136,12 @@
 
 .recharts-text {
   font-size: 12px;
+  fill: var(--ink-secondary);
 }
 
 .recharts-pie-label-text {
   font-size: 12px !important;
+  fill: var(--ink-secondary) !important;
 }
 
 .recharts-tooltip-wrapper {
@@ -152,18 +149,27 @@
 }
 
 .recharts-default-tooltip {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid #ccc !important;
-  border-radius: 4px !important;
+  background-color: rgba(250, 246, 239, 0.96) !important;
+  border: 1px solid rgba(121, 136, 164, 0.24) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--surface-shadow-soft) !important;
 }
 
 .recharts-tooltip-label {
-  color: #333 !important;
+  color: var(--ink-primary) !important;
   font-weight: 600;
 }
 
 .recharts-tooltip-item {
-  color: #666 !important;
+  color: var(--ink-secondary) !important;
+}
+
+.recharts-cartesian-grid line {
+  stroke: rgba(79, 94, 119, 0.12);
+}
+
+.recharts-legend-item-text {
+  color: var(--ink-secondary) !important;
 }
 
 /* Responsive Design */

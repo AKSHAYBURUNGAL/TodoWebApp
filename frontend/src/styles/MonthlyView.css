@@ -13,13 +13,13 @@
 .monthly-header h1 {
   margin: 0 0 8px 0;
   font-size: 32px;
-  color: #333;
+  color: var(--ink-primary);
 }
 
 .monthly-subtitle {
   margin: 0;
   font-size: 16px;
-  color: #666;
+  color: var(--ink-secondary);
 }
 
 /* Month Navigation */
@@ -34,19 +34,19 @@
 
 .btn-nav {
   padding: 10px 20px;
-  background-color: #2196f3;
-  color: white;
-  border: none;
-  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(22, 36, 59, 0.92), rgba(88, 104, 145, 0.78));
+  color: var(--cream);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.3s ease;
+  min-height: 44px;
 }
 
 .btn-nav:hover {
-  background-color: #1976d2;
-  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+  transform: translateY(-1px);
 }
 
 .month-display {
@@ -58,15 +58,16 @@
 .month-display h2 {
   margin: 0 10px;
   font-size: 20px;
-  color: #333;
+  color: var(--ink-primary);
 }
 
 .current-month-badge {
   display: inline-block;
-  background-color: #4caf50;
-  color: white;
+  background: rgba(123, 168, 154, 0.16);
+  color: #3f6b5f;
   padding: 4px 12px;
-  border-radius: 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(123, 168, 154, 0.22);
   font-size: 12px;
   font-weight: 600;
   margin-left: 10px;
@@ -76,18 +77,19 @@
   display: block;
   margin: 0 auto 20px;
   padding: 10px 20px;
-  background-color: #ff9800;
-  color: white;
-  border: none;
-  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(123, 168, 154, 0.92), rgba(80, 122, 110, 0.86));
+  color: var(--cream);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.3s ease;
+  min-height: 44px;
 }
 
 .btn-current-month:hover {
-  background-color: #f57c00;
+  transform: translateY(-1px);
 }
 
 /* Alerts */
@@ -99,9 +101,8 @@
 }
 
 .alert-error {
-  background-color: #ffebee;
-  color: #c62828;
-  border-left: 4px solid #f44336;
+  color: #8d3434;
+  border-left: 4px solid rgba(184, 72, 72, 0.72);
 }
 
 /* Monthly Progress */
@@ -110,11 +111,17 @@
 }
 
 .progress-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    rgba(22, 36, 59, 0.76),
+    rgba(57, 42, 63, 0.52)
+  );
+  color: var(--cream);
   padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: var(--surface-shadow-soft);
+  backdrop-filter: blur(20px);
 }
 
 .progress-stat {
@@ -145,7 +152,7 @@
 
 .progress-fill {
   height: 100%;
-  background-color: #4caf50;
+  background: linear-gradient(90deg, #7ba89a, #d4b178);
   transition: width 0.3s ease;
   border-radius: 4px;
 }
@@ -157,11 +164,10 @@
 
 /* Calendar Container */
 .calendar-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 22px;
   padding: 20px;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Calendar Weekdays Header */
@@ -175,7 +181,7 @@
 .weekday-header {
   text-align: center;
   font-weight: 700;
-  color: #667eea;
+  color: var(--ink-secondary);
   padding: 10px 0;
   font-size: 14px;
 }
@@ -189,9 +195,9 @@
 }
 
 .calendar-day {
-  background-color: #f9f9f9;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.36);
+  border: 1px solid rgba(121, 136, 164, 0.18);
+  border-radius: 14px;
   padding: 10px;
   min-height: 100px;
   position: relative;
@@ -200,35 +206,34 @@
 }
 
 .calendar-day:hover {
-  border-color: #667eea;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  border-color: rgba(127, 149, 203, 0.32);
+  box-shadow: 0 12px 22px rgba(7, 14, 31, 0.14);
 }
 
 .calendar-day.empty {
-  background-color: #f5f5f5;
-  border-color: #f5f5f5;
+  background-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.08);
   cursor: default;
 }
 
 .calendar-day.empty:hover {
-  border-color: #f5f5f5;
+  border-color: rgba(255, 255, 255, 0.08);
   box-shadow: none;
 }
 
 .calendar-day.today {
-  background-color: #e8f5e9;
-  border-color: #4caf50;
-  border-width: 2px;
+  background-color: rgba(123, 168, 154, 0.14);
+  border-color: rgba(123, 168, 154, 0.48);
 }
 
 .calendar-day.has-tasks {
-  background-color: #fafafa;
+  background-color: rgba(255, 255, 255, 0.44);
 }
 
 .day-number {
   font-weight: 700;
   font-size: 16px;
-  color: #333;
+  color: var(--ink-primary);
   margin-bottom: 6px;
 }
 
@@ -239,10 +244,10 @@
 }
 
 .completion-badge {
-  background-color: #667eea;
-  color: white;
+  background: linear-gradient(135deg, rgba(22, 36, 59, 0.92), rgba(88, 104, 145, 0.78));
+  color: var(--cream);
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
 }
@@ -261,15 +266,15 @@
   gap: 4px;
   font-size: 12px;
   padding: 3px;
-  border-radius: 4px;
-  background-color: white;
-  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(121, 136, 164, 0.14);
   transition: all 0.2s ease;
 }
 
 .task-preview:hover {
-  background-color: #f0f0f0;
-  border-color: #667eea;
+  background-color: rgba(255, 255, 255, 0.72);
+  border-color: rgba(127, 149, 203, 0.26);
 }
 
 .task-preview.completed {
@@ -282,7 +287,7 @@
   height: 16px;
   cursor: pointer;
   margin: 0 2px;
-  accent-color: #4caf50;
+  accent-color: #7ba89a;
 }
 
 .task-label-month {
@@ -318,7 +323,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #333;
+  color: var(--ink-primary);
   font-weight: 500;
 }
 
@@ -329,7 +334,7 @@
 
 .more-tasks {
   font-size: 11px;
-  color: #999;
+  color: var(--ink-secondary);
   padding: 2px 4px;
   font-weight: 600;
 }
@@ -339,7 +344,7 @@
   text-align: center;
   padding: 40px 20px;
   font-size: 16px;
-  color: #666;
+  color: var(--ink-secondary);
 }
 
 .loading-message::after {
@@ -386,6 +391,7 @@
 
   .month-navigation {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .btn-nav {
@@ -399,6 +405,15 @@
 
   .month-display h2 {
     font-size: 16px;
+  }
+
+  .calendar-container {
+    padding: 12px;
+  }
+
+  .calendar-weekdays,
+  .calendar-grid {
+    min-width: 640px;
   }
 
   .calendar-day {
@@ -425,6 +440,14 @@
 }
 
 @media (max-width: 480px) {
+  .monthly-view {
+    padding: 10px;
+  }
+
+  .monthly-header {
+    text-align: left;
+  }
+
   .calendar-day {
     min-height: 60px;
     padding: 6px;

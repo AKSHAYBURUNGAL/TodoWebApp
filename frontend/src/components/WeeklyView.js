@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_BASE_URL from "../config/apiConfig";
+import Icon from "./Icon";
 import "../styles/WeeklyView.css";
 
 const WeeklyView = ({ token }) => {
@@ -176,14 +177,20 @@ const WeeklyView = ({ token }) => {
   return (
     <div className="weekly-view">
       <div className="weekly-header">
-        <h1>📆 Weekly Habit Tracker</h1>
+        <h1 className="title-with-icon">
+          <Icon name="calendarWeek" className="title-icon" />
+          <span>Weekly Habit Tracker</span>
+        </h1>
         <p className="weekly-subtitle">Track your daily habits throughout the week</p>
       </div>
 
       {/* Week Navigation */}
       <div className="week-navigation">
         <button className="btn-nav" onClick={goToPreviousWeek} title="Previous week">
-          ← Previous Week
+          <span className="button-with-icon">
+            <Icon name="chevronLeft" size={18} />
+            <span>Previous Week</span>
+          </span>
         </button>
 
         <div className="week-display">
@@ -203,13 +210,19 @@ const WeeklyView = ({ token }) => {
         </div>
 
         <button className="btn-nav" onClick={goToNextWeek} title="Next week">
-          Next Week →
+          <span className="button-with-icon">
+            <span>Next Week</span>
+            <Icon name="chevronRight" size={18} />
+          </span>
         </button>
       </div>
 
       {!isCurrentWeek && (
         <button className="btn-current-week" onClick={goToCurrentWeek}>
-          Go to Current Week
+          <span className="button-with-icon">
+            <Icon name="target" size={18} />
+            <span>Go to Current Week</span>
+          </span>
         </button>
       )}
 
@@ -283,7 +296,9 @@ const WeeklyView = ({ token }) => {
                             htmlFor={`task-day-${task._id}-${dayIndex}`}
                             className="checkbox-label-day"
                           >
-                            {getTaskStatusForDate(task, dayIndex) === "completed" ? "✓" : ""}
+                            {getTaskStatusForDate(task, dayIndex) === "completed" && (
+                              <Icon name="check" size={14} />
+                            )}
                           </label>
                         </div>
                         <div className="task-content-day">

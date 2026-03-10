@@ -12,6 +12,18 @@ const TodoSchema = new mongoose.Schema({
     required: true
   },
 
+  ownerId: {
+    type: String,
+    required: true,
+    index: true
+  },
+
+  ownerName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+
   description: {
     type: String,
     default: ""
@@ -65,6 +77,10 @@ const TodoSchema = new mongoose.Schema({
     completedAt: {
       type: Date,
       default: Date.now
+    },
+    completedBy: {
+      type: String,
+      default: null
     }
   }],
 

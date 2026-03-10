@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_BASE_URL from "../config/apiConfig";
+import Icon from "./Icon";
 import "../styles/MonthlyView.css";
 
 const MonthlyView = ({ token }) => {
@@ -168,14 +169,20 @@ const MonthlyView = ({ token }) => {
   return (
     <div className="monthly-view">
       <div className="monthly-header">
-        <h1>📆 Monthly Habit Tracker</h1>
+        <h1 className="title-with-icon">
+          <Icon name="calendarMonth" className="title-icon" />
+          <span>Monthly Habit Tracker</span>
+        </h1>
         <p className="monthly-subtitle">Track your daily habits throughout the month</p>
       </div>
 
       {/* Month Navigation */}
       <div className="month-navigation">
         <button className="btn-nav" onClick={goToPreviousMonth} title="Previous month">
-          ← Previous Month
+          <span className="button-with-icon">
+            <Icon name="chevronLeft" size={18} />
+            <span>Previous Month</span>
+          </span>
         </button>
 
         <div className="month-display">
@@ -184,13 +191,19 @@ const MonthlyView = ({ token }) => {
         </div>
 
         <button className="btn-nav" onClick={goToNextMonth} title="Next month">
-          Next Month →
+          <span className="button-with-icon">
+            <span>Next Month</span>
+            <Icon name="chevronRight" size={18} />
+          </span>
         </button>
       </div>
 
       {!isCurrentMonth && (
         <button className="btn-current-month" onClick={goToCurrentMonth}>
-          Go to Current Month
+          <span className="button-with-icon">
+            <Icon name="target" size={18} />
+            <span>Go to Current Month</span>
+          </span>
         </button>
       )}
 

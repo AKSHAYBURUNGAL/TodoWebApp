@@ -1,7 +1,11 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config({ quiet: true });
+const path = require("path");
+require("dotenv").config({
+  path: path.resolve(__dirname, ".env"),
+  quiet: true,
+});
 
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -12,7 +16,9 @@ const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
+const authRoutes = require("./routes/auth");
 const todoRoutes = require("./routes/todos");
+const { authenticateRequest } = require("./middleware/auth");
 
 let dbConnectPromise;
 const connectToDatabase = async () => {
@@ -44,7 +50,8 @@ app.use(async (req, res, next) => {
   }
 });
 
-app.use("/api/todos", todoRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/todos", authenticateRequest, todoRoutes);
 
 if (require.main === module) {
   app.listen(PORT, () => {

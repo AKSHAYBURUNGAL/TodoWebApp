@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_BASE_URL from "../config/apiConfig";
+import Icon from "./Icon";
 import "../styles/DailyChecklist.css";
 
 const DailyChecklist = ({ token }) => {
@@ -84,7 +85,10 @@ const DailyChecklist = ({ token }) => {
   return (
     <div className="daily-checklist">
       <div className="checklist-header">
-        <h1>📅 Daily Checklist</h1>
+        <h1 className="title-with-icon">
+          <Icon name="calendarDay" className="title-icon" />
+          <span>Daily Checklist</span>
+        </h1>
         <p className="checklist-subtitle">
           Complete your daily tasks and track your progress
         </p>
@@ -93,7 +97,10 @@ const DailyChecklist = ({ token }) => {
       {/* Date Navigation */}
       <div className="date-navigation">
         <button className="btn-nav" onClick={goToPreviousDay} title="Previous day">
-          ← Previous
+          <span className="button-with-icon">
+            <Icon name="chevronLeft" size={18} />
+            <span>Previous</span>
+          </span>
         </button>
 
         <div className="date-display">
@@ -102,13 +109,19 @@ const DailyChecklist = ({ token }) => {
         </div>
 
         <button className="btn-nav" onClick={goToNextDay} title="Next day">
-          Next →
+          <span className="button-with-icon">
+            <span>Next</span>
+            <Icon name="chevronRight" size={18} />
+          </span>
         </button>
       </div>
 
       {!isToday && (
         <button className="btn-today" onClick={goToToday}>
-          Go to Today
+          <span className="button-with-icon">
+            <Icon name="target" size={18} />
+            <span>Go to Today</span>
+          </span>
         </button>
       )}
 
@@ -139,7 +152,9 @@ const DailyChecklist = ({ token }) => {
         <div className="loading-message">Loading tasks...</div>
       ) : todaysTasks.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">🎉</div>
+          <div className="empty-icon empty-icon-badge">
+            <Icon name="sparkles" size={32} />
+          </div>
           <h3>No tasks for {isToday ? "today" : "this day"}</h3>
           <p>All caught up! Time to relax or plan ahead.</p>
         </div>
@@ -149,7 +164,10 @@ const DailyChecklist = ({ token }) => {
           {todaysTasks.some((t) => t.priority === "high") && (
             <div className="task-group">
               <h3 className="group-title high-priority">
-                🔴 High Priority ({todaysTasks.filter((t) => t.priority === "high").length})
+                <span className="group-title-content">
+                  <Icon name="flag" size={16} />
+                  <span>High Priority ({todaysTasks.filter((t) => t.priority === "high").length})</span>
+                </span>
               </h3>
               <div className="tasks-group-list">
                 {todaysTasks
@@ -169,8 +187,10 @@ const DailyChecklist = ({ token }) => {
           {todaysTasks.some((t) => t.priority === "medium") && (
             <div className="task-group">
               <h3 className="group-title medium-priority">
-                🟡 Medium Priority (
-                {todaysTasks.filter((t) => t.priority === "medium").length})
+                <span className="group-title-content">
+                  <Icon name="flag" size={16} />
+                  <span>Medium Priority ({todaysTasks.filter((t) => t.priority === "medium").length})</span>
+                </span>
               </h3>
               <div className="tasks-group-list">
                 {todaysTasks
@@ -190,7 +210,10 @@ const DailyChecklist = ({ token }) => {
           {todaysTasks.some((t) => t.priority === "low") && (
             <div className="task-group">
               <h3 className="group-title low-priority">
-                🟢 Low Priority ({todaysTasks.filter((t) => t.priority === "low").length})
+                <span className="group-title-content">
+                  <Icon name="flag" size={16} />
+                  <span>Low Priority ({todaysTasks.filter((t) => t.priority === "low").length})</span>
+                </span>
               </h3>
               <div className="tasks-group-list">
                 {todaysTasks
@@ -254,10 +277,14 @@ const TaskChecklistItem = ({ task, onToggle }) => {
         )}
         {task.dueDate && (
           <p className="task-due-time">
-            Due: {new Date(task.dueDate).toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            <Icon name="clock" size={14} className="meta-icon" />
+            <span>
+              Due:{" "}
+              {new Date(task.dueDate).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </p>
         )}
         {task.category && (
@@ -265,7 +292,12 @@ const TaskChecklistItem = ({ task, onToggle }) => {
         )}
       </div>
 
-      {isCompleted && <div className="completed-badge">✓ Done</div>}
+      {isCompleted && (
+        <div className="completed-badge">
+          <Icon name="check" size={14} />
+          <span>Done</span>
+        </div>
+      )}
     </div>
   );
 };

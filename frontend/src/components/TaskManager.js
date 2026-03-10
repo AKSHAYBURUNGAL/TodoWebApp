@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import API_BASE_URL from "../config/apiConfig";
+import Icon from "./Icon";
 import "../styles/TaskManager.css";
 
 const TaskManager = ({ token, onTasksChange }) => {
@@ -179,7 +180,10 @@ const TaskManager = ({ token, onTasksChange }) => {
   return (
     <div className="task-manager">
       <div className="task-manager-header">
-        <h1>📋 Task Manager</h1>
+        <h1 className="title-with-icon">
+          <Icon name="clipboard" className="title-icon" />
+          <span>Task Manager</span>
+        </h1>
         <button
           className="btn btn-primary"
           onClick={() => {
@@ -187,7 +191,10 @@ const TaskManager = ({ token, onTasksChange }) => {
             setShowForm(!showForm);
           }}
         >
-          {showForm ? "Cancel" : "+ New Task"}
+          <span className="button-with-icon">
+            {!showForm && <Icon name="plus" size={18} />}
+            <span>{showForm ? "Cancel" : "New Task"}</span>
+          </span>
         </button>
       </div>
 
@@ -392,7 +399,10 @@ const TaskManager = ({ token, onTasksChange }) => {
                     className="task-checkbox"
                   />
                   <label htmlFor={`task-${task._id}`} className="checkbox-label">
-                    {task.status === "completed" ? "✓" : "○"}
+                    <Icon
+                      name={task.status === "completed" ? "check" : "circle"}
+                      size={18}
+                    />
                   </label>
                 </div>
                 <div className="task-info">
@@ -419,18 +429,20 @@ const TaskManager = ({ token, onTasksChange }) => {
 
               <div className="task-actions">
                 <button
-                  className="btn btn-small btn-edit"
+                  className="btn btn-small btn-edit icon-button"
                   onClick={() => handleEdit(task)}
                   title="Edit task"
+                  aria-label="Edit task"
                 >
-                  ✏️
+                  <Icon name="edit" size={18} />
                 </button>
                 <button
-                  className="btn btn-small btn-delete"
+                  className="btn btn-small btn-delete icon-button"
                   onClick={() => handleDelete(task._id)}
                   title="Delete task"
+                  aria-label="Delete task"
                 >
-                  🗑️
+                  <Icon name="trash" size={18} />
                 </button>
               </div>
             </div>

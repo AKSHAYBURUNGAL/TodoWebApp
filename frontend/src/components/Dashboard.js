@@ -16,6 +16,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import Icon from "./Icon";
 import "../styles/Dashboard.css";
 
 const Dashboard = ({ token }) => {
@@ -80,7 +81,10 @@ const Dashboard = ({ token }) => {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h1>📊 Productivity Dashboard</h1>
+        <h1 className="title-with-icon">
+          <Icon name="dashboard" className="title-icon" />
+          <span>Productivity Dashboard</span>
+        </h1>
       </div>
 
       {/* Statistics Cards */}
