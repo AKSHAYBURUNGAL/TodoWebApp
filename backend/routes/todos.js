@@ -1,5 +1,11 @@
 const router = require("express").Router();
 const { randomUUID } = require("crypto");
+const {
+  DEFAULT_TODO_CATEGORY,
+  DEFAULT_TODO_PRIORITY,
+  DEFAULT_TODO_RECURRENCE,
+  DEFAULT_TODO_STATUS,
+} = require("../constants/todo");
 const Todo = require("../models/Todo");
 const analyticsService = require("../services/analyticsService");
 const {
@@ -12,6 +18,11 @@ const {
   taskOccursInRange,
   taskOccursOnDate,
 } = require("../utils/taskSchedule");
+
+const TODO_LIST_SORT = {
+  dueDate: 1,
+  priority: -1,
+};
 
 const sendError = (res, message, statusCode = 500) => {
   console.error("Error:", message);
@@ -26,22 +37,70 @@ const findOwnedTodoById = (todoId, userId) =>
 const findTasksForRange = async (userId, startDate, endDate) => {
   const todos = await Todo.find(
     buildOccurrenceCandidateQuery(userId, startDate, endDate)
-  ).sort({
-    dueDate: 1,
-    priority: -1,
-  });
+  ).sort(TODO_LIST_SORT);
 
   return todos.filter((todo) => taskOccursInRange(todo, startDate, endDate));
 };
 
+const createTodoDocument = (payload, req) =>
+  new Todo({
+    taskId: randomUUID(),
+    ownerId: req.userId,
+    ownerName: req.userName,
+    text: payload.text.trim(),
+    description: payload.description || "",
+    priority: payload.priority || DEFAULT_TODO_PRIORITY,
+    startDate: payload.startDate || new Date(),
+    dueDate: payload.dueDate || null,
+    endDate: payload.endDate || null,
+    category: payload.category || DEFAULT_TODO_CATEGORY,
+    recurrence: payload.recurrence || DEFAULT_TODO_RECURRENCE,
+    recurrenceDays: payload.recurrenceDays || [],
+    status: DEFAULT_TODO_STATUS,
+    completed: false,
+  });
+
+const assignTodoUpdates = (todo, payload) => {
+  const updatableFields = [
+    "description",
+    "status",
+    "priority",
+    "startDate",
+    "dueDate",
+    "endDate",
+    "category",
+    "recurrence",
+    "recurrenceDays",
+  ];
+
+  if (payload.text !== undefined) {
+    if (!payload.text.trim()) {
+      return "Todo title is required";
+    }
+
+    todo.text = payload.text.trim();
+  }
+
+  updatableFields.forEach((fieldName) => {
+    if (payload[fieldName] !== undefined) {
+      todo[fieldName] = payload[fieldName];
+    }
+  });
+
+  if (payload.completed !== undefined) {
+    todo.completed = payload.completed;
+    todo.status = payload.completed ? "completed" : "pending";
+  }
+
+  return null;
+};
+
 router.get("/", async (req, res) => {
   try {
-    const todos = await Todo.find(buildOwnerQuery(req.userId)).sort({
-      dueDate: 1,
-      priority: -1,
-    });
+    const todos = await Todo.find(buildOwnerQuery(req.userId)).sort(
+      TODO_LIST_SORT
+    );
 
-    console.log(`Found ${todos.length} todos for user ${req.userId}`);
     return res.json(todos);
   } catch (error) {
     console.error("Error fetching todos:", error.message);
@@ -138,22 +197,20 @@ router.post("/", async (req, res) => {
       return sendError(res, "Todo title is required", 400);
     }
 
-    const todo = new Todo({
-      taskId: randomUUID(),
-      ownerId: req.userId,
-      ownerName: req.userName,
-      text: text.trim(),
-      description: description || "",
-      priority: priority || "medium",
-      startDate: startDate || new Date(),
-      dueDate: dueDate || null,
-      endDate: endDate || null,
-      category: category || "general",
-      recurrence: recurrence || "none",
-      recurrenceDays: recurrenceDays || [],
-      status: "pending",
-      completed: false,
-    });
+    const todo = createTodoDocument(
+      {
+        text,
+        description,
+        priority,
+        startDate,
+        dueDate,
+        endDate,
+        category,
+        recurrence,
+        recurrenceDays,
+      },
+      req
+    );
 
     await todo.save();
     return res.status(201).json(todo);
@@ -184,43 +241,22 @@ router.put("/:id", async (req, res) => {
       return sendError(res, "Todo not found", 404);
     }
 
-    if (text !== undefined) {
-      if (!text.trim()) {
-        return sendError(res, "Todo title is required", 400);
-      }
+    const updateError = assignTodoUpdates(todo, {
+      text,
+      description,
+      status,
+      priority,
+      startDate,
+      dueDate,
+      endDate,
+      category,
+      recurrence,
+      recurrenceDays,
+      completed,
+    });
 
-      todo.text = text.trim();
-    }
-    if (description !== undefined) {
-      todo.description = description;
-    }
-    if (status !== undefined) {
-      todo.status = status;
-    }
-    if (priority !== undefined) {
-      todo.priority = priority;
-    }
-    if (startDate !== undefined) {
-      todo.startDate = startDate;
-    }
-    if (dueDate !== undefined) {
-      todo.dueDate = dueDate;
-    }
-    if (endDate !== undefined) {
-      todo.endDate = endDate;
-    }
-    if (category !== undefined) {
-      todo.category = category;
-    }
-    if (recurrence !== undefined) {
-      todo.recurrence = recurrence;
-    }
-    if (recurrenceDays !== undefined) {
-      todo.recurrenceDays = recurrenceDays;
-    }
-    if (completed !== undefined) {
-      todo.completed = completed;
-      todo.status = completed ? "completed" : "pending";
+    if (updateError) {
+      return sendError(res, updateError, 400);
     }
 
     await todo.save();

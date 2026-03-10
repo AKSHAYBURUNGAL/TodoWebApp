@@ -2,10 +2,10 @@ const router = require("express").Router();
 const User = require("../models/User");
 const Todo = require("../models/Todo");
 const { createAuthToken, authenticateRequest } = require("../middleware/auth");
-
-const normalizeUserName = (name = "") => name.trim().replace(/\s+/g, " ");
-
-const getNormalizedKey = (name) => normalizeUserName(name).toLowerCase();
+const {
+  getNormalizedUserNameKey,
+  normalizeUserName,
+} = require("../utils/userName");
 
 const serializeUser = (user) => ({
   id: user.id,
@@ -38,7 +38,7 @@ const claimLegacyTodosForUser = async (user) => {
 router.post("/register", async (req, res) => {
   try {
     const displayName = normalizeUserName(req.body?.name || "");
-    const normalizedName = getNormalizedKey(displayName);
+    const normalizedName = getNormalizedUserNameKey(displayName);
 
     if (!displayName) {
       return res.status(400).json({ error: "Name is required" });
@@ -70,7 +70,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const displayName = normalizeUserName(req.body?.name || "");
-    const normalizedName = getNormalizedKey(displayName);
+    const normalizedName = getNormalizedUserNameKey(displayName);
 
     if (!displayName) {
       return res.status(400).json({ error: "Name is required" });
