@@ -193,8 +193,9 @@
 @media (max-width: 600px) {
   .auth-layout {
     min-height: calc(100dvh - 20px);
-    padding: 6px 0 max(14px, env(safe-area-inset-bottom));
-    align-items: flex-end;
+    padding: max(10px, env(safe-area-inset-top)) 0 max(14px, env(safe-area-inset-bottom));
+    align-items: center;
+    justify-content: center;
   }
 
   .auth-card {
@@ -202,6 +203,7 @@
     max-width: calc(100vw - 20px);
     padding: 22px 18px max(20px, env(safe-area-inset-bottom));
     border-radius: 24px;
+    margin: 0 auto;
   }
 
   .auth-title {
@@ -256,7 +258,10 @@
 
 @media (max-width: 420px) {
   .auth-layout {
-    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    padding:
+      max(8px, env(safe-area-inset-top))
+      0
+      max(12px, env(safe-area-inset-bottom));
   }
 
   .auth-card {

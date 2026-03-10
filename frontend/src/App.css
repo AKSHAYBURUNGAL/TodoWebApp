@@ -644,18 +644,19 @@ body {
   }
 
   .app-shell::before {
-    position: absolute;
+    position: fixed;
     inset: 0;
     animation: mobileBackgroundDrift 22s ease-in-out infinite alternate;
-    transform: scale(1.03);
-    transform-origin: center top;
+    transform: scale(1.03) translateZ(0);
+    transform-origin: center center;
     background-position: 54% top;
     background-size: cover;
     will-change: transform;
+    backface-visibility: hidden;
   }
 
   .app-shell::after {
-    position: absolute;
+    position: fixed;
     inset: 0;
     animation: none;
     opacity: 0.7;
