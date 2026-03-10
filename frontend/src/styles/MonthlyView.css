@@ -401,6 +401,7 @@
   .month-display {
     order: -1;
     margin-bottom: 10px;
+    min-width: 0;
   }
 
   .month-display h2 {
@@ -408,12 +409,13 @@
   }
 
   .calendar-container {
-    padding: 12px;
+    padding: 10px;
+    scroll-snap-type: x proximity;
   }
 
   .calendar-weekdays,
   .calendar-grid {
-    min-width: 640px;
+    min-width: 560px;
   }
 
   .calendar-day {
@@ -437,6 +439,12 @@
   .completion-badge {
     font-size: 10px;
   }
+
+  .btn-nav .button-with-icon,
+  .btn-current-month .button-with-icon {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 480px) {
@@ -446,6 +454,11 @@
 
   .monthly-header {
     text-align: left;
+  }
+
+  .calendar-weekdays,
+  .calendar-grid {
+    min-width: 520px;
   }
 
   .calendar-day {
@@ -462,7 +475,7 @@
   }
 
   .task-name {
-    max-width: 60px;
+    max-width: 72px;
   }
 
   .completion-badge {

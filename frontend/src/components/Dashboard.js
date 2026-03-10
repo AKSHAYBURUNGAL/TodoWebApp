@@ -23,9 +23,27 @@ const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window === "undefined" ? 1024 : window.innerWidth
+  );
 
   useEffect(() => {
     fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   const fetchDashboardData = async () => {
@@ -62,6 +80,15 @@ const Dashboard = () => {
   }
 
   const { statistics, dailyTrends, weeklyTrends, monthlyTrends, completionHistory } = dashboardData;
+  const isCompact = viewportWidth <= 768;
+  const isPhone = viewportWidth <= 520;
+  const chartHeight = isPhone ? 220 : isCompact ? 250 : 300;
+  const chartMargin = isPhone
+    ? { top: 5, right: 8, left: 0, bottom: 5 }
+    : { top: 5, right: 24, left: 0, bottom: 5 };
+  const rotatedAxisMargin = isPhone
+    ? { top: 5, right: 8, left: 0, bottom: 46 }
+    : { top: 5, right: 30, left: 0, bottom: 80 };
 
   const pieData = [
     { name: "Completed", value: statistics.completedTasks },
@@ -112,16 +139,16 @@ const Dashboard = () => {
         {/* Daily Trends */}
         <div className="chart-container">
           <h2>Daily Trends (Last 7 Days)</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <LineChart
               data={dailyTrends}
-              margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+              margin={chartMargin}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="displayDate" />
+              <XAxis dataKey="displayDate" tick={{ fontSize: isPhone ? 10 : 12 }} />
               <YAxis domain={[0, 100]} />
               <Tooltip />
-              <Legend />
+              {!isPhone && <Legend />}
               <Line
                 type="monotone"
                 dataKey="completion"
@@ -136,16 +163,16 @@ const Dashboard = () => {
         {/* Weekly Trends */}
         <div className="chart-container">
           <h2>Weekly Trends (Last 12 Weeks)</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart
               data={weeklyTrends}
-              margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+              margin={chartMargin}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="week" />
+              <XAxis dataKey="week" tick={{ fontSize: isPhone ? 10 : 12 }} />
               <YAxis domain={[0, 100]} />
               <Tooltip />
-              <Legend />
+              {!isPhone && <Legend />}
               <Bar dataKey="completion" fill="#82ca9d" name="Completion %" />
             </BarChart>
           </ResponsiveContainer>
@@ -154,15 +181,15 @@ const Dashboard = () => {
         {/* Task Status Pie Chart */}
         <div className="chart-container">
           <h2>Task Status</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
               <Pie
                 data={pieData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, value }) => `${name}: ${value}`}
-                outerRadius={80}
+                label={!isPhone ? ({ name, value }) => `${name}: ${value}` : false}
+                outerRadius={isPhone ? 58 : isCompact ? 68 : 80}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -178,13 +205,13 @@ const Dashboard = () => {
         {/* Priority Distribution */}
         <div className="chart-container">
           <h2>Tasks by Priority</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart
               data={priorityData}
-              margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+              margin={chartMargin}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
+              <XAxis dataKey="name" tick={{ fontSize: isPhone ? 10 : 12 }} />
               <YAxis />
               <Tooltip />
               <Bar dataKey="value" fill="#8884d8" name="Count">
@@ -199,21 +226,23 @@ const Dashboard = () => {
         {/* Monthly Trends */}
         <div className="chart-container">
           <h2>Monthly Trends (Last 12 Months)</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <LineChart
               data={monthlyTrends}
-              margin={{ top: 5, right: 30, left: 0, bottom: 80 }}
+              margin={rotatedAxisMargin}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="month"
-                angle={-45}
-                textAnchor="end"
-                height={100}
+                angle={isPhone ? 0 : -45}
+                textAnchor={isPhone ? "middle" : "end"}
+                height={isPhone ? 42 : 100}
+                tick={{ fontSize: isPhone ? 10 : 12 }}
+                interval={isPhone ? 1 : 0}
               />
               <YAxis domain={[0, 100]} />
               <Tooltip />
-              <Legend />
+              {!isPhone && <Legend />}
               <Line
                 type="monotone"
                 dataKey="completion"
@@ -228,21 +257,23 @@ const Dashboard = () => {
         {/* Completion History */}
         <div className="chart-container">
           <h2>Completion History (Last 30 Days)</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart
               data={completionHistory}
-              margin={{ top: 5, right: 30, left: 0, bottom: 80 }}
+              margin={rotatedAxisMargin}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="displayDate"
-                angle={-45}
+                angle={isPhone ? -30 : -45}
                 textAnchor="end"
-                height={100}
+                height={isPhone ? 64 : 100}
+                tick={{ fontSize: isPhone ? 9 : 12 }}
+                interval={isPhone ? 4 : 1}
               />
               <YAxis />
               <Tooltip />
-              <Legend />
+              {!isPhone && <Legend />}
               <Bar dataKey="tasksCompleted" fill="#4CAF50" name="Tasks Completed" />
             </BarChart>
           </ResponsiveContainer>

@@ -445,6 +445,11 @@
   .btn-nav {
     flex: 1;
     min-width: 100px;
+  }
+
+  .btn-nav .button-with-icon,
+  .btn-today .button-with-icon {
+    width: 100%;
     justify-content: center;
   }
 
@@ -459,7 +464,8 @@
   }
 
   .checklist-summary {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
   }
 
@@ -474,6 +480,7 @@
 
   .completed-badge {
     margin-left: auto;
+    align-self: flex-start;
   }
 
   .progress-card {
@@ -497,5 +504,23 @@
 
   .btn-today {
     width: 100%;
+  }
+
+  .progress-stat {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .checklist-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-item {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.28);
   }
 }

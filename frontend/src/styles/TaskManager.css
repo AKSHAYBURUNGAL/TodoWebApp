@@ -590,18 +590,28 @@
   }
 
   .task-form {
-    padding: 16px;
+    padding: 14px;
     margin-bottom: 20px;
     border-radius: 24px;
   }
 
   .task-form-hero {
     flex-direction: column;
-    padding: 16px;
+    padding: 14px;
+    gap: 14px;
   }
 
   .task-form-panel {
-    padding: 16px;
+    padding: 14px;
+  }
+
+  .task-form-copy {
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .task-form-chip {
+    width: fit-content;
   }
 
   .task-filters {
@@ -622,7 +632,7 @@
   .task-actions {
     width: 100%;
     margin-top: 12px;
-    justify-content: flex-end;
+    justify-content: stretch;
   }
 
   .task-filters {
@@ -639,6 +649,17 @@
 
   .day-checkbox {
     padding: 8px 12px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select,
+  .filter-select {
+    font-size: 16px;
   }
 }
 
@@ -661,10 +682,33 @@
 
   .task-actions .btn {
     flex: 1;
-    max-width: 56px;
+    max-width: none;
   }
 
   .badge {
     font-size: 11px;
+  }
+
+  .task-item {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .task-title {
+    font-size: 15px;
+  }
+
+  .task-description {
+    font-size: 13px;
+  }
+
+  .days-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .day-checkbox {
+    justify-content: center;
+    width: 100%;
   }
 }

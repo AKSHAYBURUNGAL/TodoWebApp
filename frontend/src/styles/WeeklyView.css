@@ -433,6 +433,7 @@
   .week-display {
     order: -1;
     margin-bottom: 10px;
+    min-width: 0;
   }
 
   .week-display h2 {
@@ -441,6 +442,7 @@
 
   .weekly-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .day-card {
@@ -457,6 +459,18 @@
 
   .task-item-day {
     padding: 12px;
+    align-items: flex-start;
+  }
+
+  .task-content-day {
+    align-items: flex-start;
+  }
+
+  .task-text-day {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    line-height: 1.4;
   }
 }
 
@@ -475,5 +489,21 @@
 
   .stat-value {
     font-size: 30px;
+  }
+
+  .day-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .day-progress {
+    text-align: left;
+  }
+
+  .btn-nav .button-with-icon,
+  .btn-current-week .button-with-icon {
+    width: 100%;
+    justify-content: center;
   }
 }
