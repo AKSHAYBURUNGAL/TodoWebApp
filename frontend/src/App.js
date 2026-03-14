@@ -20,13 +20,14 @@ import {
 import "./App.css";
 
 const API_URL = API_BASE_URL;
+const initialSession = readCurrentSession();
 
 function App() {
   const [todos, setTodos] = useState([]);
   const [activeTab, setActiveTab] = useState("checklist");
-  const [currentUser, setCurrentUser] = useState(() => readCurrentSession());
+  const [currentUser, setCurrentUser] = useState(() => initialSession);
   const [authStatus, setAuthStatus] = useState(() =>
-    readCurrentSession()?.token ? "checking" : "guest"
+    initialSession?.token ? "authenticated" : "guest"
   );
 
   const handleLogout = () => {
@@ -54,31 +55,22 @@ function App() {
   useEffect(() => {
     let isCancelled = false;
 
-    const validateSession = async () => {
+    const restoreSession = async () => {
       if (!currentUser?.token) {
         applyAuthToken(null);
+        setTodos([]);
         setAuthStatus("guest");
         return;
       }
 
       applyAuthToken(currentUser.token);
+      setAuthStatus("authenticated");
 
       try {
-        const response = await axios.get(`${AUTH_API_BASE_URL}/me`);
-
         if (isCancelled) {
           return;
         }
 
-        const normalizedSession = {
-          ...currentUser,
-          id: response.data.user.id,
-          name: response.data.user.name,
-        };
-
-        saveCurrentSession(normalizedSession);
-        setCurrentUser(normalizedSession);
-        setAuthStatus("authenticated");
         await fetchTodos();
       } catch (error) {
         if (isCancelled) {
@@ -93,7 +85,7 @@ function App() {
       }
     };
 
-    validateSession();
+    restoreSession();
 
     return () => {
       isCancelled = true;
@@ -130,8 +122,8 @@ function App() {
 
     applyAuthToken(session.token);
     saveCurrentSession(session);
-    setAuthStatus("checking");
     setCurrentUser(session);
+    setAuthStatus("authenticated");
 
     return { success: true };
   };
